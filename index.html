@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Hack & House — The daily curling concentration and memory puzzle. Match granite stones, tactics, and curling rules.">
+  <meta name="theme-color" content="#040b17">
+  <title>HACK & HOUSE // Daily Curling Memory Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="pebble-overlay" aria-hidden="true"></div>
+  <div class="sheet-lighting" aria-hidden="true"></div>
+
+  <div id="app" class="app-container">
+
+    <section id="screen-menu" class="screen screen-active" aria-label="Main Menu">
+      <header class="clubhouse-header">
+        <div class="sheet-badge">
+          <span class="badge-dot"></span> DAILY MEMORY PUZZLE
+        </div>
+        <h1 class="game-title">HACK<span class="title-amp">&</span>HOUSE</h1>
+        <p class="game-subtitle">THE DAILY CURLING MEMORY GAME</p>
+      </header>
+
+      <div class="stats-ribbon" aria-label="Player Statistics">
+        <div class="stat-cell">
+          <span class="stat-num" id="stat-streak">0</span>
+          <span class="stat-label">DAY STREAK</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num" id="stat-cleared">0</span>
+          <span class="stat-label">PUZZLES SOLVED</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num" id="stat-stars">0★</span>
+          <span class="stat-label">TOTAL STARS</span>
+        </div>
+      </div>
+
+      <main class="menu-actions">
+        <article class="neo-card daily-hub-card">
+          <div class="card-status-strip">
+            <span id="daily-date-display" class="status-date">TODAY</span>
+            <span id="daily-status-badge" class="status-pill pill-ready">READY TO PLAY</span>
+          </div>
+          
+          <div class="daily-meta">
+            <h2 id="daily-puzzle-title" class="daily-title">PUZZLE 1: THE ESSENTIALS</h2>
+            <p id="daily-puzzle-desc" class="daily-desc">Master the hammer, button, hack, and key team roles.</p>
+          </div>
+
+          <button id="btn-play-daily" class="neo-btn neo-btn-primary btn-giant" aria-label="Play Today's Daily Puzzle">
+            <span class="btn-text">PLAY DAILY PUZZLE</span>
+            <span class="btn-icon" aria-hidden="true">▶</span>
+          </button>
+        </article>
+
+        <nav class="menu-nav-grid" aria-label="Main Navigation">
+          <button id="btn-open-vault" class="neo-btn neo-btn-vault" aria-label="Open Puzzle Archive">
+            <span class="btn-icon" aria-hidden="true">📁</span>
+            <span class="btn-label">ARCHIVE</span>
+            <span id="vault-count-badge" class="counter-badge">0</span>
+          </button>
+          
+          <button id="btn-open-rules" class="neo-btn neo-btn-utility" aria-label="How to Play Rules">
+            <span class="btn-icon" aria-hidden="true">📖</span>
+            <span class="btn-label">HOW TO PLAY</span>
+          </button>
+
+          <button id="btn-open-settings" class="neo-btn neo-btn-utility" aria-label="Game Settings">
+            <span class="btn-icon" aria-hidden="true">⚙️</span>
+            <span class="btn-label">SETTINGS</span>
+          </button>
+        </nav>
+      </main>
+
+      <footer class="clubhouse-footer">
+        <p class="footer-note">A NEW PUZZLE IS RELEASED EVERY DAY AT MIDNIGHT</p>
+      </footer>
+    </section>
+
+    <section id="screen-game" class="screen" aria-label="Curling Memory Game Board">
+      <header class="hud-top-bar">
+        <button id="btn-game-back" class="neo-btn neo-btn-sm btn-back" aria-label="Back to Main Menu">
+          <span>← BACK</span>
+        </button>
+        <div class="hud-center-pill">
+          <span id="game-sheet-title" class="hud-sheet-name">DAILY PUZZLE</span>
+        </div>
+        <button id="btn-toggle-audio-hud" class="neo-btn neo-btn-sm btn-audio" aria-label="Toggle Sound Effects">
+          <span id="hud-audio-icon" aria-hidden="true">🔊</span>
+        </button>
+      </header>
+
+      <div class="scoreboard-strip" role="region" aria-label="Game Scoreboard">
+        <div class="score-cell">
+          <span class="cell-label">MOVES</span>
+          <span id="score-moves" class="cell-val">0</span>
+        </div>
+        <div class="score-cell">
+          <span class="cell-label">PAIRS</span>
+          <span id="score-matches" class="cell-val">0 / 8</span>
+        </div>
+        <div class="score-cell">
+          <span class="cell-label">TIME</span>
+          <span id="score-timer" class="cell-val">00:00</span>
+        </div>
+      </div>
+
+      <main class="ice-sheet-arena">
+        <div id="memory-grid" class="memory-grid" role="grid" aria-label="4 by 4 Memory Card Grid">
+        </div>
+      </main>
+
+      <footer class="hud-bottom-bar">
+        <div id="game-status-message" class="status-ticker" aria-live="polite">
+          SELECT TWO CARDS TO FIND A MATCH
+        </div>
+      </footer>
+    </section>
+
+    <section id="screen-vault" class="screen" aria-label="Past Puzzles Archive">
+      <header class="hud-top-bar">
+        <button id="btn-vault-back" class="neo-btn neo-btn-sm btn-back" aria-label="Back to Main Menu">
+          <span>← BACK</span>
+        </button>
+        <div class="hud-center-pill">
+          <span class="hud-sheet-name">PUZZLE ARCHIVE</span>
+        </div>
+        <div class="hud-spacer" aria-hidden="true"></div>
+      </header>
+
+      <div class="vault-container">
+        <div class="vault-intro">
+          <h2>PAST PUZZLES</h2>
+          <p>Play previous daily puzzles at any time. Your scores and best times are saved.</p>
+        </div>
+
+        <div class="vault-filter-bar" role="tablist" aria-label="Archive Filters">
+          <button class="vault-tab-btn active" data-filter="all" role="tab" aria-selected="true">ALL</button>
+          <button class="vault-tab-btn" data-filter="cleared" role="tab" aria-selected="false">COMPLETED</button>
+          <button class="vault-tab-btn" data-filter="unplayed" role="tab" aria-selected="false">UNPLAYED</button>
+        </div>
+        
+        <div id="vault-list" class="vault-grid">
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-settings" class="screen" aria-label="Settings Screen">
+      <header class="hud-top-bar">
+        <button id="btn-settings-back" class="neo-btn neo-btn-sm btn-back" aria-label="Back to Main Menu">
+          <span>← BACK</span>
+        </button>
+        <div class="hud-center-pill">
+          <span class="hud-sheet-name">SETTINGS</span>
+        </div>
+        <div class="hud-spacer" aria-hidden="true"></div>
+      </header>
+
+      <div class="settings-content">
+        <div class="neo-card settings-card">
+          <h3>AUDIO & SOUND</h3>
+          <p class="settings-note">Sound effects for card flips, matches, and puzzle completion.</p>
+          <div class="settings-row">
+            <span>SOUND EFFECTS</span>
+            <button id="btn-toggle-sound" class="neo-btn neo-btn-sm btn-toggle-active">ENABLED</button>
+          </div>
+        </div>
+
+        <div class="neo-card settings-card">
+          <h3>GAME INFORMATION</h3>
+          <p class="settings-note">Review game rules, scoring thresholds, and curling terms.</p>
+          <div class="settings-row">
+            <span>HOW TO PLAY</span>
+            <button id="btn-settings-open-rules" class="neo-btn neo-btn-sm neo-btn-utility">VIEW RULES</button>
+          </div>
+        </div>
+
+        <div class="neo-card settings-card">
+          <h3>PLAYER DATA</h3>
+          <p class="settings-note">Clear all saved puzzle records, streak counts, and personal bests.</p>
+          <div class="settings-row">
+            <span>RESET PROGRESS</span>
+            <button id="btn-wipe-data" class="neo-btn neo-btn-sm neo-btn-danger">RESET</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="modal-rules" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rules-heading">
+      <div class="modal-window neo-card rules-card">
+        <div class="modal-header">
+          <h2 id="rules-heading" class="modal-title">HOW TO PLAY</h2>
+          <button id="btn-close-rules" class="btn-close" aria-label="Close Rules Dialog">✕</button>
+        </div>
+
+        <div class="rules-body">
+          <div class="rule-item">
+            <span class="rule-icon" aria-hidden="true">🥌</span>
+            <div>
+              <strong>THE OBJECTIVE</strong>
+              <p>Find all 8 matching curling pairs across the 16-card grid with the fewest moves and fastest time.</p>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <span class="rule-icon" aria-hidden="true">🎯</span>
+            <div>
+              <strong>MAKING MATCHES</strong>
+              <p>Tap a card to turn it face up, then select a second card. If both describe the same curling concept, they stay face up. If not, they flip back down.</p>
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <span class="rule-icon" aria-hidden="true">⭐</span>
+            <div>
+              <strong>STAR RATINGS</strong>
+              <p>3 Stars: 12 moves or fewer<br>2 Stars: 13 to 18 moves<br>1 Star: 19 moves or more<br>Play every day to keep your daily streak alive!</p>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-rules-got-it" class="neo-btn neo-btn-primary btn-giant">
+          <span>GOT IT</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="modal-victory" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="victory-heading">
+      <div class="modal-window neo-card victory-card">
+        <div class="victory-ribbon">PUZZLE COMPLETED</div>
+        <h2 id="victory-heading" class="victory-heading">WELL DONE!</h2>
+        <p id="victory-subtitle" class="victory-sub">You found all 8 matching curling pairs.</p>
+
+        <div class="stars-row" id="victory-stars" aria-label="Earned Stars">
+          <span class="star" aria-hidden="true">★</span>
+          <span class="star" aria-hidden="true">★</span>
+          <span class="star" aria-hidden="true">★</span>
+        </div>
+
+        <div class="victory-stats-grid">
+          <div class="v-stat">
+            <span class="v-label">TIME</span>
+            <strong id="victory-time" class="v-value">00:00</strong>
+          </div>
+          <div class="v-stat">
+            <span class="v-label">MOVES</span>
+            <strong id="victory-moves" class="v-value">0</strong>
+          </div>
+          <div class="v-stat">
+            <span class="v-label">ACCURACY</span>
+            <strong id="victory-accuracy" class="v-value">100%</strong>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-share-result" class="neo-btn neo-btn-share">
+            <span class="btn-icon" aria-hidden="true">📋</span>
+            <span>SHARE RESULT</span>
+          </button>
+          <button id="btn-victory-continue" class="neo-btn neo-btn-primary">
+            <span>CONTINUE</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast-popup" role="status" aria-live="polite"></div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
