@@ -171,13 +171,358 @@
         { term: 'SPEED TRAP', category: 'PHYSICS', icon: '⏱️', desc: 'Stopwatch measure of hog-to-hog split' },
         { term: 'WARM-UP', category: 'EVENT', icon: '🔥', desc: 'Pre-game practice session per team' }
       ]
+    },
+    {
+      id: 'puzzle-11', title: 'PUZZLE 11: DELIVERY CRAFT', description: 'Balance, release, weight, and line from hack to house.',
+      pairs: [
+        { term: 'SETUP', category: 'DELIVERY', icon: '🧍', desc: 'Stable starting position in the hack' },
+        { term: 'BACKSWING', category: 'DELIVERY', icon: '🔄', desc: 'Controlled arm movement before the slide' },
+        { term: 'RELEASE', category: 'DELIVERY', icon: '🎯', desc: 'Clean moment the hand leaves the handle' },
+        { term: 'FOLLOW-THROUGH', category: 'DELIVERY', icon: '➡️', desc: 'Finishing motion after releasing the stone' },
+        { term: 'DRAW WEIGHT', category: 'PHYSICS', icon: '⚖️', desc: 'Speed intended to finish in the house' },
+        { term: 'TAKEOUT WEIGHT', category: 'PHYSICS', icon: '💥', desc: 'Firm speed used to remove a stone' },
+        { term: 'LINE', category: 'DELIVERY', icon: '📏', desc: 'Initial path aimed at the skip broom' },
+        { term: 'BALANCE', category: 'DELIVERY', icon: '⚖️', desc: 'Control that keeps the slide repeatable' }
+      ]
+    },
+    {
+      id: 'puzzle-12', title: 'PUZZLE 12: ICE READING', description: 'Learn how pebble, speed, curl, and conditions shape every shot.',
+      pairs: [
+        { term: 'ICE SPEED', category: 'ICE', icon: '💨', desc: 'Distance a stone carries at a given weight' },
+        { term: 'FALL LINE', category: 'ICE', icon: '📉', desc: 'Natural drift caused by subtle sheet slope' },
+        { term: 'PICK', category: 'ICE', icon: '⚠️', desc: 'Debris that makes a moving stone deviate' },
+        { term: 'NIPPER', category: 'ICE', icon: '🪒', desc: 'Tool that trims frozen pebble tips' },
+        { term: 'PEBBLE', category: 'ICE', icon: '❄️', desc: 'Frozen droplets that create a running surface' },
+        { term: 'FRESH ICE', category: 'ICE', icon: '✨', desc: 'Recently prepared surface with lively curl' },
+        { term: 'MELT', category: 'PHYSICS', icon: '💧', desc: 'Brief heat effect from active sweeping' },
+        { term: 'READ', category: 'TACTIC', icon: '👀', desc: 'Judging speed and curl before calling a shot' }
+      ]
+    },
+    {
+      id: 'puzzle-13', title: 'PUZZLE 13: ADVANCED SHOTS', description: 'Caroms, raises, freezes, and rolls for precise stone placement.',
+      pairs: [
+        { term: 'WICK', category: 'SHOT', icon: '🔀', desc: 'Glancing contact that redirects a stone' },
+        { term: 'CAROM', category: 'SHOT', icon: '🎱', desc: 'Contact that sends the shooter through another path' },
+        { term: 'RAISE', category: 'SHOT', icon: '⬆️', desc: 'Moving a stone forward with another stone' },
+        { term: 'RAISE TAKEOUT', category: 'SHOT', icon: '💥', desc: 'Raise that removes an opponent stone' },
+        { term: 'FREEZE', category: 'SHOT', icon: '🧊', desc: 'Stopping tight against a stationary stone' },
+        { term: 'ROLL', category: 'SHOT', icon: '🌀', desc: 'Shooter sliding sideways after contact' },
+        { term: 'CHIP', category: 'SHOT', icon: '🪨', desc: 'Light hit using an edge of a stone' },
+        { term: 'DOUBLE', category: 'SHOT', icon: '✌️', desc: 'One delivery removing two opponent stones' }
+      ]
+    },
+    {
+      id: 'puzzle-14', title: 'PUZZLE 14: HOUSE MANAGEMENT', description: 'Read scoring angles and build positions around the button.',
+      pairs: [
+        { term: 'BUTTON', category: 'TARGET', icon: '🎯', desc: 'Small center circle of the house' },
+        { term: 'FOUR-FOOT', category: 'TARGET', icon: '🔴', desc: 'Ring directly surrounding the button' },
+        { term: 'EIGHT-FOOT', category: 'TARGET', icon: '🔵', desc: 'Middle scoring ring of the house' },
+        { term: 'TWELVE-FOOT', category: 'TARGET', icon: '⭕', desc: 'Outer scoring ring of the house' },
+        { term: 'FRONT OF HOUSE', category: 'POSITION', icon: '⬆️', desc: 'Area before the tee line' },
+        { term: 'BACK OF HOUSE', category: 'POSITION', icon: '⬇️', desc: 'Area behind the tee line' },
+        { term: 'BURIED', category: 'POSITION', icon: '🫥', desc: 'Stone protected under cover or behind a guard' },
+        { term: 'EXPOSED', category: 'POSITION', icon: '🔎', desc: 'Stone visible and vulnerable to a hit' }
+      ]
+    },
+    {
+      id: 'puzzle-15', title: 'PUZZLE 15: TEAM ROLES', description: 'Understand the responsibilities of every player on the sheet.',
+      pairs: [
+        { term: 'LEAD', category: 'ROLE', icon: '1️⃣', desc: 'Throws the opening two stones of an end' },
+        { term: 'SECOND', category: 'ROLE', icon: '2️⃣', desc: 'Throws the third and fourth stones' },
+        { term: 'VICE-SKIP', category: 'ROLE', icon: '🥈', desc: 'Runs the house while the skip delivers' },
+        { term: 'SKIP', category: 'ROLE', icon: '🧠', desc: 'Directs strategy and calls the target' },
+        { term: 'FRONT END', category: 'ROLE', icon: '👥', desc: 'Lead and second working early positions' },
+        { term: 'BACK END', category: 'ROLE', icon: '🎯', desc: 'Vice-skip and skip handling key shots' },
+        { term: 'COMMUNICATION', category: 'TEAM', icon: '📣', desc: 'Shared information about line and weight' },
+        { term: 'TRUST', category: 'TEAM', icon: '🤝', desc: 'Confidence in teammates and agreed calls' }
+      ]
+    },
+    {
+      id: 'puzzle-16', title: 'PUZZLE 16: SWEEPING SCIENCE', description: 'Pressure, direction, and calls that keep a stone on plan.',
+      pairs: [
+        { term: 'HURRY', category: 'CALL', icon: '⚡', desc: 'Command for maximum sweeping effort' },
+        { term: 'WHOA', category: 'CALL', icon: '✋', desc: 'Command telling sweepers to stop' },
+        { term: 'CLEAN', category: 'SWEEP', icon: '✨', desc: 'Light brushing to remove debris' },
+        { term: 'PRESSURE', category: 'SWEEP', icon: '⬇️', desc: 'Downward force applied through the broom' },
+        { term: 'BRUSH HEAD', category: 'EQUIP', icon: '🧹', desc: 'Fabric surface making contact with ice' },
+        { term: 'STRAIGHTEN', category: 'SWEEP', icon: '↔️', desc: 'Reducing curl while extending distance' },
+        { term: 'CARRY', category: 'PHYSICS', icon: '📈', desc: 'How far a stone travels down the sheet' },
+        { term: 'SWEEPING WINDOW', category: 'TIMING', icon: '⏱️', desc: 'Brief period when brushing can change outcome' }
+      ]
+    },
+    {
+      id: 'puzzle-17', title: 'PUZZLE 17: CURLING HISTORY', description: 'Granite, clubs, tournaments, and the roots of the roaring game.',
+      pairs: [
+        { term: 'SCOTLAND', category: 'HISTORY', icon: '🏴', desc: 'Birthplace of organized curling tradition' },
+        { term: 'AILSA CRAIG', category: 'HISTORY', icon: '🏔️', desc: 'Island quarry supplying curling granite' },
+        { term: 'BONSPIEL', category: 'EVENT', icon: '🏆', desc: 'Traditional curling tournament' },
+        { term: 'ROARING GAME', category: 'HISTORY', icon: '🔊', desc: 'Nickname for granite rumbling over pebble' },
+        { term: 'CLUBHOUSE', category: 'CULTURE', icon: '🏠', desc: 'Community home for curling members' },
+        { term: 'SILVER BROOM', category: 'EVENT', icon: '🥈', desc: 'Historic international curling championship' },
+        { term: 'LOCH', category: 'HISTORY', icon: '🌊', desc: 'Frozen Scottish water where early games formed' },
+        { term: 'TRADITION', category: 'CULTURE', icon: '📜', desc: 'Customs carried through generations of play' }
+      ]
+    },
+    {
+      id: 'puzzle-18', title: 'PUZZLE 18: MIXED DOUBLES', description: 'The fast two-player format with pre-positioned stones and power plays.',
+      pairs: [
+        { term: 'MIXED DOUBLES', category: 'FORMAT', icon: '👫', desc: 'Two-player format with one player of each gender' },
+        { term: 'POWER PLAY', category: 'TACTIC', icon: '⚡', desc: 'One-time option moving stones to the wings' },
+        { term: 'PRE-PLACED', category: 'FORMAT', icon: '📍', desc: 'Stones positioned before an end begins' },
+        { term: 'FIVE STONES', category: 'RULES', icon: '5️⃣', desc: 'Normal number delivered by each team' },
+        { term: 'EIGHT ENDS', category: 'RULES', icon: '8️⃣', desc: 'Standard length of a mixed doubles game' },
+        { term: 'SELF SWEEP', category: 'TECHNIQUE', icon: '🧹', desc: 'Thrower sweeping their own moving stone' },
+        { term: 'OPEN ICE', category: 'TACTIC', icon: '🧊', desc: 'Clear path valuable in the quick format' },
+        { term: 'ROTATION', category: 'DELIVERY', icon: '↻', desc: 'Handle turn shaping the stone path' }
+      ]
+    },
+    {
+      id: 'puzzle-19', title: 'PUZZLE 19: RULES IN MOTION', description: 'Hog lines, burned stones, free guards, and fair play.',
+      pairs: [
+        { term: 'HOG LINE', category: 'RULES', icon: '📏', desc: 'Delivery boundary a stone must clear' },
+        { term: 'HOGGED', category: 'RULES', icon: '🚫', desc: 'Removed for failing to cross the far hog line' },
+        { term: 'BURNED', category: 'RULES', icon: '🔥', desc: 'Touched by a player while moving' },
+        { term: 'FREE GUARD ZONE', category: 'RULES', icon: '🛡️', desc: 'Protected area before the house' },
+        { term: 'FIVE-ROCK RULE', category: 'RULES', icon: '5️⃣', desc: 'Modern free guard protection count' },
+        { term: 'SIDELINE', category: 'RULES', icon: '↔️', desc: 'Boundary where contact removes a stone' },
+        { term: 'MEASURE', category: 'RULES', icon: '📐', desc: 'Official comparison for close scoring rocks' },
+        { term: 'UMPIRE', category: 'ROLE', icon: '⚖️', desc: 'Official resolving a rules question' }
+      ]
+    },
+    {
+      id: 'puzzle-20', title: 'PUZZLE 20: SCOREBOARD TACTICS', description: 'Use the end, score, and hammer to choose the right risk.',
+      pairs: [
+        { term: 'FORCE', category: 'TACTIC', icon: '🔒', desc: 'Holding the hammer team to one point' },
+        { term: 'STEAL', category: 'TACTIC', icon: '🥷', desc: 'Scoring without having the hammer' },
+        { term: 'BLANK', category: 'TACTIC', icon: '0️⃣', desc: 'Scoreless end retaining last-rock advantage' },
+        { term: 'TWO-FOR-ONE', category: 'TACTIC', icon: '✌️', desc: 'Taking two points from one planned position' },
+        { term: 'LEAD', category: 'SCORE', icon: '📈', desc: 'Team ahead on the scoreboard' },
+        { term: 'TRAIL', category: 'SCORE', icon: '📉', desc: 'Team behind on the scoreboard' },
+        { term: 'EXTRA END', category: 'RULES', icon: '➕', desc: 'Additional end breaking a tied game' },
+        { term: 'HAMMER', category: 'TACTIC', icon: '🔨', desc: 'Last-stone advantage' }
+      ]
+    },
+    {
+      id: 'puzzle-21', title: 'PUZZLE 21: STONE ANATOMY', description: 'Running surfaces, handles, granite, and the engineering of a rock.',
+      pairs: [
+        { term: 'RUNNING BAND', category: 'EQUIP', icon: '⭕', desc: 'Narrow ring that touches the ice' },
+        { term: 'HANDLE', category: 'EQUIP', icon: '🔴', desc: 'Grip used to set rotation at release' },
+        { term: 'GRANITE', category: 'EQUIP', icon: '⛰️', desc: 'Dense stone used to make curling rocks' },
+        { term: 'CUP', category: 'EQUIP', icon: '🥣', desc: 'Concave underside around the running band' },
+        { term: 'BOLT', category: 'EQUIP', icon: '🔩', desc: 'Fastener securing the handle to stone' },
+        { term: 'MICROGRANITE', category: 'GEAR', icon: '🔬', desc: 'Fine-grained stone selected for consistency' },
+        { term: 'IMPACT', category: 'PHYSICS', icon: '💥', desc: 'Contact energy transferred during a hit' },
+        { term: 'ROTATION', category: 'PHYSICS', icon: '🌀', desc: 'Spin applied through the handle' }
+      ]
+    },
+    {
+      id: 'puzzle-22', title: 'PUZZLE 22: ICE MAKER', description: 'The craft of building a fast, fair, and readable curling sheet.',
+      pairs: [
+        { term: 'ICE MAKER', category: 'ROLE', icon: '🧑‍🔧', desc: 'Technician responsible for playing conditions' },
+        { term: 'PEBBLING', category: 'ICE', icon: '💧', desc: 'Spraying droplets that freeze on the sheet' },
+        { term: 'NIPPING', category: 'ICE', icon: '🪒', desc: 'Leveling the tops of frozen droplets' },
+        { term: 'FLOOD', category: 'ICE', icon: '🌊', desc: 'Applying water to refresh the sheet surface' },
+        { term: 'SCRAPE', category: 'ICE', icon: '🧽', desc: 'Removing old pebble before preparation' },
+        { term: 'HUMIDITY', category: 'ICE', icon: '💨', desc: 'Air moisture affecting ice conditions' },
+        { term: 'TEMPERATURE', category: 'ICE', icon: '🌡️', desc: 'Surface condition that changes speed and curl' },
+        { term: 'CONSISTENCY', category: 'ICE', icon: '📊', desc: 'Reliable performance from end to end' }
+      ]
+    },
+    {
+      id: 'puzzle-23', title: 'PUZZLE 23: SHOE & BROOM GEAR', description: 'Equipment details that make delivery and sweeping possible.',
+      pairs: [
+        { term: 'SLIDER', category: 'EQUIP', icon: '⛸️', desc: 'Low-friction sole for the sliding foot' },
+        { term: 'GRIPPER', category: 'EQUIP', icon: '🥾', desc: 'Traction sole for walking and pushing' },
+        { term: 'STABILIZER', category: 'EQUIP', icon: '🦯', desc: 'Balance aid used during a delivery' },
+        { term: 'BROOM HEAD', category: 'EQUIP', icon: '🧹', desc: 'Synthetic fabric used to sweep ice' },
+        { term: 'BROOM HANDLE', category: 'EQUIP', icon: '📏', desc: 'Shaft providing reach and leverage' },
+        { term: 'TAPE', category: 'EQUIP', icon: '🩹', desc: 'Grip material wrapped around equipment' },
+        { term: 'SOLE', category: 'EQUIP', icon: '👟', desc: 'Bottom surface of a curling shoe' },
+        { term: 'TRACTION', category: 'PHYSICS', icon: '🛞', desc: 'Resistance that prevents unwanted slipping' }
+      ]
+    },
+    {
+      id: 'puzzle-24', title: 'PUZZLE 24: THROWING ANGLES', description: 'Control the target, contact point, and shooter path.',
+      pairs: [
+        { term: 'NOSE HIT', category: 'SHOT', icon: '🎯', desc: 'Straight contact leaving the shooter centered' },
+        { term: 'ANGLE HIT', category: 'SHOT', icon: '📐', desc: 'Off-center contact sending the shooter aside' },
+        { term: 'RAISE', category: 'SHOT', icon: '⬆️', desc: 'Using one stone to advance another' },
+        { term: 'PROMOTE', category: 'SHOT', icon: '🚀', desc: 'Moving a friendly stone deeper into play' },
+        { term: 'ROLL OUT', category: 'SHOT', icon: '↗️', desc: 'Shooter leaving play after a hit' },
+        { term: 'ROLL IN', category: 'SHOT', icon: '↘️', desc: 'Shooter settling into a useful position' },
+        { term: 'PORT', category: 'TACTIC', icon: '🚪', desc: 'Opening between guards or stones' },
+        { term: 'ANGLE RAISE', category: 'SHOT', icon: '🔺', desc: 'Diagonal raise using a precise contact' }
+      ]
+    },
+    {
+      id: 'puzzle-25', title: 'PUZZLE 25: DRAWING LINES', description: 'The language of paths, cover, and controlled finishes.',
+      pairs: [
+        { term: 'DRAW', category: 'SHOT', icon: '🎯', desc: 'Soft delivery finishing in the house' },
+        { term: 'COME-AROUND', category: 'SHOT', icon: '↩️', desc: 'Curling behind a guard into scoring area' },
+        { term: 'OPEN DRAW', category: 'SHOT', icon: '🛣️', desc: 'Draw using a clear path to the house' },
+        { term: 'RAISED DRAW', category: 'SHOT', icon: '⬆️', desc: 'Draw promoted by contacting another stone' },
+        { term: 'COVER', category: 'TACTIC', icon: '🛡️', desc: 'Protection hiding a scoring stone' },
+        { term: 'LINE OF DELIVERY', category: 'PHYSICS', icon: '📏', desc: 'Target path from hack to broom' },
+        { term: 'FINISH', category: 'PHYSICS', icon: '🏁', desc: 'Final position and curl of the stone' },
+        { term: 'WEIGHT', category: 'PHYSICS', icon: '⚖️', desc: 'Speed selected for the intended result' }
+      ]
+    },
+    {
+      id: 'puzzle-26', title: 'PUZZLE 26: FREE GUARD PLAY', description: 'Use protection, patience, and angles before the guards can move.',
+      pairs: [
+        { term: 'CENTER GUARD', category: 'TACTIC', icon: '🛡️', desc: 'Guard placed on or near center line' },
+        { term: 'CORNER GUARD', category: 'TACTIC', icon: '📐', desc: 'Guard placed wide of the center' },
+        { term: 'FREE GUARD ZONE', category: 'RULES', icon: '🚧', desc: 'Area where early guards receive protection' },
+        { term: 'FIVE ROCKS', category: 'RULES', icon: '5️⃣', desc: 'Number protected under the five-rock rule' },
+        { term: 'TICK', category: 'SHOT', icon: '👆', desc: 'Small nudge moving a guard off center' },
+        { term: 'COVERED', category: 'TACTIC', icon: '🫥', desc: 'Hidden behind a guard or another stone' },
+        { term: 'SEQUENCE', category: 'TACTIC', icon: '🔢', desc: 'Order of shots building a position' },
+        { term: 'PATIENT', category: 'TACTIC', icon: '🧘', desc: 'Waiting for the right opening to attack' }
+      ]
+    },
+    {
+      id: 'puzzle-27', title: 'PUZZLE 27: EXTRA ENDS', description: 'Tiebreak pressure, hammer decisions, and sudden-death play.',
+      pairs: [
+        { term: 'TIE', category: 'SCORE', icon: '🟰', desc: 'Equal score after regulation ends' },
+        { term: 'EXTRA END', category: 'SCORE', icon: '➕', desc: 'Additional end used to break a tie' },
+        { term: 'HAMMER', category: 'TACTIC', icon: '🔨', desc: 'Final stone advantage in the end' },
+        { term: 'LAST ROCK', category: 'TACTIC', icon: '🥌', desc: 'Final delivery with power to score' },
+        { term: 'SUDDEN DEATH', category: 'RULES', icon: '⚡', desc: 'Winner decided by the next scoring end' },
+        { term: 'MEASURE', category: 'RULES', icon: '📐', desc: 'Tool resolving a close button decision' },
+        { term: 'PRESSURE', category: 'MENTAL', icon: '🔥', desc: 'Focus required when one end decides all' },
+        { term: 'DECISION', category: 'TACTIC', icon: '🧠', desc: 'Choice between attacking and defending' }
+      ]
+    },
+    {
+      id: 'puzzle-28', title: 'PUZZLE 28: CURLING ETIQUETTE', description: 'The customs and conduct behind the Spirit of Curling.',
+      pairs: [
+        { term: 'GOOD CURLING', category: 'CODE', icon: '🤝', desc: 'Common greeting before and after a game' },
+        { term: 'BROOMSTACKING', category: 'CODE', icon: '☕', desc: 'Post-game social time with opponents' },
+        { term: 'HONESTY', category: 'CODE', icon: '⚖️', desc: 'Calling your own burned stone or violation' },
+        { term: 'RESPECT', category: 'CODE', icon: '👏', desc: 'Competing hard while honoring opponents' },
+        { term: 'CONCEDE', category: 'CODE', icon: '🏳️', desc: 'End a game when the result is settled' },
+        { term: 'QUIET', category: 'CODE', icon: '🤫', desc: 'Stillness while an opponent delivers' },
+        { term: 'SHAKE HANDS', category: 'CODE', icon: '🤝', desc: 'Traditional pre-game and post-game greeting' },
+        { term: 'SPORTSMANSHIP', category: 'CODE', icon: '🏅', desc: 'Fair conduct in every result' }
+      ]
+    },
+    {
+      id: 'puzzle-29', title: 'PUZZLE 29: MODERN FORMATS', description: 'Explore team variations beyond the traditional four-player game.',
+      pairs: [
+        { term: 'MIXED DOUBLES', category: 'FORMAT', icon: '👫', desc: 'Two-player team format' },
+        { term: 'FOUR PLAYER', category: 'FORMAT', icon: '4️⃣', desc: 'Traditional team size' },
+        { term: 'WHEELCHAIR', category: 'FORMAT', icon: '♿', desc: 'Inclusive format using adapted delivery' },
+        { term: 'POWER PLAY', category: 'FORMAT', icon: '⚡', desc: 'Mixed doubles layout option' },
+        { term: 'JUNIOR', category: 'FORMAT', icon: '🌟', desc: 'Development competition for young curlers' },
+        { term: 'SINGLES', category: 'FORMAT', icon: '1️⃣', desc: 'Solo skill challenge format' },
+        { term: 'TEAM', category: 'FORMAT', icon: '👥', desc: 'Players sharing one strategy and score' },
+        { term: 'LEAGUE', category: 'EVENT', icon: '📅', desc: 'Recurring club competition schedule' }
+      ]
+    },
+    {
+      id: 'puzzle-30', title: 'PUZZLE 30: CHAMPIONSHIP TERMS', description: 'Tournament language from round robin to playoff pressure.',
+      pairs: [
+        { term: 'ROUND ROBIN', category: 'EVENT', icon: '🔁', desc: 'Stage where teams play each other' },
+        { term: 'PLAYOFF', category: 'EVENT', icon: '🏆', desc: 'Elimination stage after qualifying games' },
+        { term: 'STANDINGS', category: 'EVENT', icon: '📊', desc: 'Ranking of teams by results' },
+        { term: 'QUALIFIER', category: 'EVENT', icon: '✅', desc: 'Game or place earning playoff entry' },
+        { term: 'FINAL', category: 'EVENT', icon: '🥇', desc: 'Championship game deciding the winner' },
+        { term: 'MEDAL', category: 'EVENT', icon: '🏅', desc: 'Prize awarded for top championship finish' },
+        { term: 'DRAW SHOT', category: 'EVENT', icon: '🎯', desc: 'Pre-game shot that may decide hammer' },
+        { term: 'CHAMPION', category: 'EVENT', icon: '👑', desc: 'Team winning the competition' }
+      ]
+    },
+    {
+      id: 'puzzle-31', title: 'PUZZLE 31: ADVANCED TACTICS', description: 'Multi-stone geometry, risk management, and the changing board.',
+      pairs: [
+        { term: 'CAROM', category: 'SHOT', icon: '🎱', desc: 'Redirecting off one or more stones' },
+        { term: 'PORT', category: 'TACTIC', icon: '🚪', desc: 'Narrow route through stationary stones' },
+        { term: 'DOUBLE TAKEOUT', category: 'SHOT', icon: '💥', desc: 'One delivery removing two rocks' },
+        { term: 'ANGLE RAISE', category: 'SHOT', icon: '📐', desc: 'Diagonal bump into a scoring area' },
+        { term: 'MULTIPLE', category: 'TACTIC', icon: '🔢', desc: 'Position with several stones in play' },
+        { term: 'CLUTTER', category: 'TACTIC', icon: '🧩', desc: 'Dense arrangement creating complex angles' },
+        { term: 'OPEN END', category: 'TACTIC', icon: '🛣️', desc: 'Position with clear direct paths' },
+        { term: 'RISK', category: 'TACTIC', icon: '🎲', desc: 'Chance accepted for a higher scoring reward' }
+      ]
+    },
+    {
+      id: 'puzzle-32', title: 'PUZZLE 32: ICE CONDITIONS', description: 'Speed, humidity, pebble, and the variables behind a changing sheet.',
+      pairs: [
+        { term: 'HUMIDITY', category: 'ICE', icon: '💨', desc: 'Moisture in air affecting the surface' },
+        { term: 'DEW POINT', category: 'ICE', icon: '🌡️', desc: 'Temperature where moisture condenses' },
+        { term: 'FROST', category: 'ICE', icon: '❄️', desc: 'Frozen moisture that can change curl' },
+        { term: 'SPEED', category: 'ICE', icon: '💨', desc: 'How far a rock carries on the sheet' },
+        { term: 'CURL', category: 'PHYSICS', icon: '🌀', desc: 'Sideways movement caused by rotation' },
+        { term: 'RUNNING BAND', category: 'EQUIP', icon: '⭕', desc: 'Only ring contacting the ice' },
+        { term: 'PEBBLE', category: 'ICE', icon: '💧', desc: 'Frozen texture that changes friction' },
+        { term: 'PICKING', category: 'ICE', icon: '⚠️', desc: 'Unexpected deviation from debris or frost' }
+      ]
+    },
+    {
+      id: 'puzzle-33', title: 'PUZZLE 33: OFFICIAL CALLS', description: 'Commands and signals that keep a team synchronized.',
+      pairs: [
+        { term: 'HURRY', category: 'CALL', icon: '⚡', desc: 'Sweep with greater urgency' },
+        { term: 'WHOA', category: 'CALL', icon: '✋', desc: 'Stop brushing immediately' },
+        { term: 'HARD', category: 'CALL', icon: '💪', desc: 'Apply strong pressure to the broom' },
+        { term: 'CLEAN', category: 'CALL', icon: '✨', desc: 'Brush lightly to remove debris' },
+        { term: 'LINE', category: 'CALL', icon: '📏', desc: 'Judge whether the stone is on target' },
+        { term: 'WEIGHT', category: 'CALL', icon: '⚖️', desc: 'Judge whether the stone has enough speed' },
+        { term: 'SKIP CALL', category: 'ROLE', icon: '📣', desc: 'Direction coming from the house' },
+        { term: 'CONFIRM', category: 'TEAM', icon: '✅', desc: 'Shared acknowledgement of the plan' }
+      ]
+    },
+    {
+      id: 'puzzle-34', title: 'PUZZLE 34: MEASURES & METRICS', description: 'Compare stones, track execution, and understand performance.',
+      pairs: [
+        { term: 'MEASURE', category: 'RULES', icon: '📐', desc: 'Comparison deciding a close score' },
+        { term: 'BUTTON', category: 'TARGET', icon: '🎯', desc: 'Center reference for every distance' },
+        { term: 'SHOT PERCENTAGE', category: 'STATS', icon: '📊', desc: 'Rating of a player’s shot execution' },
+        { term: 'SPLIT TIME', category: 'STATS', icon: '⏱️', desc: 'Travel time between sheet markers' },
+        { term: 'ACCURACY', category: 'STATS', icon: '🎯', desc: 'How closely a shot matches its call' },
+        { term: 'EFFICIENCY', category: 'STATS', icon: '⚙️', desc: 'Value created with limited deliveries' },
+        { term: 'SCORE', category: 'STATS', icon: '🔢', desc: 'Points recorded after an end' },
+        { term: 'RANK', category: 'STATS', icon: '🏅', desc: 'Position earned in competition' }
+      ]
+    },
+    {
+      id: 'puzzle-35', title: 'PUZZLE 35: CURLING MASTERCLASS', description: 'A final mix of strategy, physics, technique, and game sense.',
+      pairs: [
+        { term: 'SCENARIO', category: 'TACTIC', icon: '🧠', desc: 'Board position requiring a clear decision' },
+        { term: 'ADAPT', category: 'TACTIC', icon: '🔄', desc: 'Change the plan when ice or score changes' },
+        { term: 'EXECUTION', category: 'TECHNIQUE', icon: '✅', desc: 'Turning the called shot into reality' },
+        { term: 'SEQUENCE', category: 'TACTIC', icon: '🔢', desc: 'Connected shots building a position' },
+        { term: 'DISCIPLINE', category: 'MENTAL', icon: '🧘', desc: 'Staying committed to smart decisions' },
+        { term: 'READ', category: 'ICE', icon: '👀', desc: 'Understanding speed, curl, and fall line' },
+        { term: 'COMMUNICATE', category: 'TEAM', icon: '📣', desc: 'Sharing information before and during delivery' },
+        { term: 'FINISH', category: 'SHOT', icon: '🏁', desc: 'Where the stone finally comes to rest' }
+      ]
     }
   ];
+
+  const validatePuzzleSets = () => {
+    const ids = new Set();
+    PUZZLE_SETS.forEach((puzzle, index) => {
+      if (!puzzle.id || ids.has(puzzle.id) || !Array.isArray(puzzle.pairs) || puzzle.pairs.length < 8) {
+        throw new Error(`Invalid or duplicate puzzle at position ${index + 1}`);
+      }
+      const terms = new Set();
+      puzzle.pairs.slice(0, 8).forEach(pair => {
+        if (!pair.term || terms.has(pair.term) || !pair.category || !pair.desc) {
+          throw new Error(`Invalid or duplicate pair in ${puzzle.id}`);
+        }
+        terms.add(pair.term);
+      });
+      ids.add(puzzle.id);
+    });
+  };
+
+  validatePuzzleSets();
 
   const STORAGE_KEY_RECORDS = 'hack_house_records_prod';
   const STORAGE_KEY_STATS = 'hack_house_stats_prod';
   const STORAGE_KEY_SETTINGS = 'hack_house_settings_prod';
-  const STORAGE_KEY_EPOCH = 'hack_house_epoch_prod';
+  const STORAGE_KEY_EPOCH = 'hack_house_epoch_prod_v2';
+  const STORAGE_KEY_SCHEDULE = 'hack_house_schedule_prod_v2';
 
   let playerRecords = {};
   let playerStats = {
@@ -196,11 +541,11 @@
       const stored = localStorage.getItem(STORAGE_KEY_EPOCH);
       if (stored) return stored;
       const today = new Date();
-      const initialEpoch = formatISODate(addDays(today, -2));
+      const initialEpoch = formatISODate(today);
       localStorage.setItem(STORAGE_KEY_EPOCH, initialEpoch);
       return initialEpoch;
     } catch {
-      return formatISODate(addDays(new Date(), -2));
+      return formatISODate(new Date());
     }
   };
 
@@ -229,6 +574,22 @@
     }
   };
 
+  const loadSchedule = () => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_SCHEDULE)) || { assignments: {}, lastIndex: -1 };
+    } catch (e) {
+      return { assignments: {}, lastIndex: -1 };
+    }
+  };
+
+  const saveSchedule = (schedule) => {
+    try {
+      localStorage.setItem(STORAGE_KEY_SCHEDULE, JSON.stringify(schedule));
+    } catch (e) {
+      return;
+    }
+  };
+
   loadStorage();
 
   const getCalendarPuzzles = () => {
@@ -236,21 +597,38 @@
     const epochDate = parseISODate(epochStr);
     const todayStr = getSystemTodayString();
     const todayDate = parseISODate(todayStr);
+    const schedule = loadSchedule();
 
     const dayDiff = Math.max(0, Math.round((todayDate - epochDate) / (1000 * 60 * 60 * 24)));
 
     const result = [];
     for (let i = 0; i <= dayDiff; i++) {
       const assignedDate = formatISODate(addDays(epochDate, i));
-      const template = PUZZLE_SETS[i % PUZZLE_SETS.length];
+      let queueIndex = Number.isInteger(schedule.assignments[assignedDate])
+        ? schedule.assignments[assignedDate]
+        : null;
+
+      if (queueIndex === null || !PUZZLE_SETS[queueIndex]) {
+        queueIndex = i === 0
+          ? 0
+          : (Number.isInteger(schedule.lastIndex) ? schedule.lastIndex + 1 : i) % PUZZLE_SETS.length;
+        schedule.assignments[assignedDate] = queueIndex;
+        schedule.lastIndex = queueIndex;
+      }
+
+      const template = PUZZLE_SETS[queueIndex];
       result.push({
         ...template,
         instanceId: `p-${assignedDate}`,
         assignedDate,
+        releaseNumber: i + 1,
+        queueIndex,
         isToday: assignedDate === todayStr,
         isPast: assignedDate < todayStr
       });
     }
+
+    saveSchedule(schedule);
 
     return result;
   };
