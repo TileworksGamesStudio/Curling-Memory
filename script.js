@@ -1,1138 +1,922 @@
 /**
- * CURLING PUZZLES — MEMORY
- * Architecture: Platform Shell + High-Fidelity Collision Physics + Daily Determinism + 2D Grid Engine
+ * Memory Match — Canadian Championship Curling Edition
+ * Advanced Light Neo-Brutalist Sports Architecture & Presentation System
+ * Follows Universal Game Design, UX & Engineering Bible
  */
 
-(function() {
+(function () {
   'use strict';
 
-  /* ==========================================================================
-     0. CONSTANTS & BASELINE
-     ========================================================================== */
-  const STORAGE_KEY = 'curling_puzzles_memory_v1';
-  const SOUND_KEY = 'curling_sound_enabled';
-  
-  // Baseline Day 0 = 8 September 2026 UTC
-  const EPOCH_UTC = Date.UTC(2026, 8, 8); // Month is 0-indexed: 8 = Sept
+  // Application-level configuration
+  const CONFIG = {
+    csvPath: './puzzles.csv',
+    storageKey: 'memory_match_vault_v1',
+    // Universal placeholder URL for project owner
+    homeUrl: 'https://tileworksgamesstudio.github.io/Curling-Menu/'
+  };
 
-  /* ==========================================================================
-     1. AUDIO SYSTEM (Synthesized via Web Audio API)
-     ========================================================================== */
-  class SoundManager {
-    constructor() {
-      this.ctx = null;
-      this.enabled = localStorage.getItem(SOUND_KEY) !== 'false';
+  const state = {
+    puzzles: [],
+    todayDate: '',
+    todayPuzzle: null,
+    activePuzzle: null,
+    boardCards: [],
+    flippedIndices: [],
+    matchedCardCount: 0,
+    turns: 0,
+    isLocked: false,
+    activeSession: null, // For in-progress recovery
+    stats: {
+      played: 0,
+      completed: 0,
+      currentStreak: 0,
+      bestStreak: 0,
+      bestTurns: null,
+      turnHistory: [],
+      history: {} // date -> { turns, accuracy }
     }
-
-    initCtx() {
-      if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        this.ctx = new AudioCtx();
-      }
-      if (this.ctx && this.ctx.state === 'suspended') {
-        this.ctx.resume();
-      }
-    }
-
-    toggle() {
-      this.enabled = !this.enabled;
-      localStorage.setItem(SOUND_KEY, this.enabled ? 'true' : 'false');
-      return this.enabled;
-    }
-
-    playTap() {
-      if (!this.enabled) return;
-      this.initCtx();
-      if (!this.ctx) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(540, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(760, this.ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.05);
-    }
-
-    playFlip() {
-      if (!this.enabled) return;
-      this.initCtx();
-      if (!this.ctx) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(340, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(460, this.ctx.currentTime + 0.07);
-      gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.08);
-    }
-
-    playMatch() {
-      if (!this.enabled) return;
-      this.initCtx();
-      if (!this.ctx) return;
-      // Dual harmonic chime
-      [523.25, 659.25, 783.99].forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.05);
-        gain.gain.setValueAtTime(0.1, this.ctx.currentTime + idx * 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.05 + 0.32);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(this.ctx.currentTime + idx * 0.05);
-        osc.stop(this.ctx.currentTime + idx * 0.05 + 0.33);
-      });
-    }
-
-    playMismatch() {
-      if (!this.enabled) return;
-      this.initCtx();
-      if (!this.ctx) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(185, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(140, this.ctx.currentTime + 0.16);
-      gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.18);
-    }
-
-    playWin() {
-      if (!this.enabled) return;
-      this.initCtx();
-      if (!this.ctx) return;
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((freq, i) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.09);
-        gain.gain.setValueAtTime(0.12, this.ctx.currentTime + i * 0.09);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.09 + 0.4);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(this.ctx.currentTime + i * 0.09);
-        osc.stop(this.ctx.currentTime + i * 0.09 + 0.41);
-      });
-    }
-  }
-
-  const soundMgr = new SoundManager();
-
-  /* ==========================================================================
-     2. AMBIENT CURLING ROCKS & RINK PHYSICS SIMULATION
-     ========================================================================== */
-  class RinkBackgroundPhysics {
-    constructor(canvas) {
-      this.canvas = canvas;
-      this.ctx = canvas.getContext('2d');
-      this.stones = [];
-      this.animationId = null;
-      this.prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      this.lastTimestamp = performance.now();
-      this.accumulator = 0;
-      this.fixedDt = 1 / 60; // 60 FPS fixed physics timestep
-      this.gameActive = false;
-      this.aggressiveTimer = 0;
-
-      this.resize = this.resize.bind(this);
-      this.loop = this.loop.bind(this);
-
-      window.addEventListener('resize', this.resize, { passive: true });
-      this.resize();
-      this.initStones();
-
-      if (!this.prefersReduced) {
-        this.animationId = requestAnimationFrame(this.loop);
-      } else {
-        this.render();
-      }
-    }
-
-    resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      this.width = window.innerWidth;
-      this.height = window.innerHeight;
-      this.canvas.width = this.width * dpr;
-      this.canvas.height = this.height * dpr;
-      this.ctx.resetTransform?.();
-      this.ctx.scale(dpr, dpr);
-    }
-
-    initStones() {
-      const isMobile = this.width < 540;
-      const count = isMobile ? 5 : 8;
-      this.stones = [];
-
-      for (let i = 0; i < count; i++) {
-        const radius = isMobile ? 20 : 25;
-        let x = 0, y = 0, safe = false, attempts = 0;
-        
-        while (!safe && attempts < 100) {
-          x = radius + 10 + Math.random() * (this.width - 2 * radius - 20);
-          y = radius + 10 + Math.random() * (this.height - 2 * radius - 20);
-          safe = true;
-          for (const other of this.stones) {
-            if (Math.hypot(other.x - x, other.y - y) < radius + other.radius + 15) {
-              safe = false;
-              break;
-            }
-          }
-          attempts++;
-        }
-
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 0.35 + Math.random() * 0.45; // Gentle natural glide
-
-        this.stones.push({
-          x,
-          y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          radius,
-          mass: radius * radius,
-          team: (i % 2 === 0) ? 'red' : 'yellow',
-          rotation: Math.random() * Math.PI * 2,
-          vRot: (Math.random() - 0.5) * 0.008,
-          isAggressive: false
-        });
-      }
-    }
-
-    setGameActive(active) {
-      this.gameActive = active;
-    }
-
-    triggerAggressiveEntry() {
-      if (this.stones.length === 0) return;
-      const isMobile = this.width < 540;
-      const radius = isMobile ? 22 : 26;
-      // Launch a fast stone from a corner/edge
-      const fromTop = Math.random() > 0.5;
-      const x = fromTop ? Math.random() * this.width : (Math.random() > 0.5 ? -radius : this.width + radius);
-      const y = fromTop ? -radius : Math.random() * this.height * 0.5;
-      
-      const targetX = this.width * 0.5 + (Math.random() - 0.5) * (this.width * 0.4);
-      const targetY = this.height * 0.5 + (Math.random() - 0.5) * (this.height * 0.4);
-      const angle = Math.atan2(targetY - y, targetX - x);
-      const speed = isMobile ? 2.6 : 3.2;
-
-      this.stones.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        radius,
-        mass: radius * radius,
-        team: Math.random() > 0.5 ? 'red' : 'yellow',
-        rotation: 0,
-        vRot: (Math.random() - 0.5) * 0.04,
-        isAggressive: true
-      });
-
-      // Maintain max stones ceiling
-      if (this.stones.length > (isMobile ? 7 : 11)) {
-        this.stones.shift();
-      }
-    }
-
-    physicsStep(dt) {
-      const friction = 0.08; // Authentic pebbled ice glide
-      const restitution = 0.82; // Granite stone elastic collision
-
-      // Periodic aggressive entry stone event
-      this.aggressiveTimer += dt;
-      if (this.aggressiveTimer > 28) {
-        this.aggressiveTimer = 0;
-        this.triggerAggressiveEntry();
-      }
-
-      // 1. Move & damp
-      for (const s of this.stones) {
-        s.x += s.vx * (dt * 60);
-        s.y += s.vy * (dt * 60);
-        s.rotation += s.vRot * (dt * 60);
-
-        // Pebble ice friction decay
-        s.vx *= Math.pow(1 - friction * 0.015, dt * 60);
-        s.vy *= Math.pow(1 - friction * 0.015, dt * 60);
-        s.vRot *= Math.pow(1 - 0.005, dt * 60);
-
-        // Keep minimum gentle drift if not aggressive
-        const currentSpeed = Math.hypot(s.vx, s.vy);
-        if (currentSpeed < 0.2 && !s.isAggressive) {
-          const a = s.rotation;
-          s.vx = Math.cos(a) * 0.25;
-          s.vy = Math.sin(a) * 0.25;
-        }
-
-        // Sheet boundary reflections
-        if (s.x - s.radius < 0) {
-          s.x = s.radius;
-          s.vx = Math.abs(s.vx) * restitution;
-        } else if (s.x + s.radius > this.width) {
-          s.x = this.width - s.radius;
-          s.vx = -Math.abs(s.vx) * restitution;
-        }
-
-        if (s.y - s.radius < 0) {
-          s.y = s.radius;
-          s.vy = Math.abs(s.vy) * restitution;
-        } else if (s.y + s.radius > this.height) {
-          s.y = this.height - s.radius;
-          s.vy = -Math.abs(s.vy) * restitution;
-        }
-      }
-
-      // 2. Collision detection & impulse resolution
-      const count = this.stones.length;
-      for (let i = 0; i < count; i++) {
-        for (let j = i + 1; j < count; j++) {
-          const s1 = this.stones[i];
-          const s2 = this.stones[j];
-
-          const dx = s2.x - s1.x;
-          const dy = s2.y - s1.y;
-          const dist = Math.hypot(dx, dy);
-          const minDist = s1.radius + s2.radius;
-
-          if (dist < minDist && dist > 0.001) {
-            // Overlap correction to prevent interpenetration
-            const overlap = (minDist - dist);
-            const nx = dx / dist;
-            const ny = dy / dist;
-
-            const m1 = s1.mass;
-            const m2 = s2.mass;
-            const totalMass = m1 + m2;
-
-            s1.x -= nx * overlap * (m2 / totalMass);
-            s1.y -= ny * overlap * (m2 / totalMass);
-            s2.x += nx * overlap * (m1 / totalMass);
-            s2.y += ny * overlap * (m1 / totalMass);
-
-            // Relative velocity
-            const kx = s1.vx - s2.vx;
-            const ky = s1.vy - s2.vy;
-            const velAlongNormal = kx * nx + ky * ny;
-
-            if (velAlongNormal > 0) {
-              const impulse = (-(1 + restitution) * velAlongNormal) / (1 / m1 + 1 / m2);
-              s1.vx += (impulse / m1) * nx;
-              s1.vy += (impulse / m1) * ny;
-              s2.vx -= (impulse / m2) * nx;
-              s2.vy -= (impulse / m2) * ny;
-
-              // Spin transfer
-              const spinDiff = s1.vRot - s2.vRot;
-              s1.vRot -= spinDiff * 0.2;
-              s2.vRot += spinDiff * 0.2;
-            }
-          }
-        }
-      }
-    }
-
-    drawRinkMarkings() {
-      const ctx = this.ctx;
-      const cx = this.width * 0.5;
-      const cy = this.height * 0.48;
-      const baseR = Math.min(this.width, this.height) * 0.44;
-
-      ctx.save();
-
-      // Centre line (Dark blue rink ink)
-      ctx.strokeStyle = 'rgba(21, 59, 93, 0.07)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(cx, 0);
-      ctx.lineTo(cx, this.height);
-      ctx.stroke();
-
-      // Tee line (Crossing the house)
-      ctx.beginPath();
-      ctx.moveTo(0, cy);
-      ctx.lineTo(this.width, cy);
-      ctx.stroke();
-
-      // Hog line (Authentic Curling Red band with ice transparency)
-      const hogY = this.height * 0.22;
-      ctx.strokeStyle = 'rgba(214, 59, 59, 0.14)';
-      ctx.lineWidth = 4.5;
-      ctx.beginPath();
-      ctx.moveTo(0, hogY);
-      ctx.lineTo(this.width, hogY);
-      ctx.stroke();
-
-      // House: 12-foot ring (Blue wash)
-      ctx.fillStyle = 'rgba(34, 123, 240, 0.04)';
-      ctx.strokeStyle = 'rgba(34, 123, 240, 0.12)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // House: 8-foot ring (White ice sheet)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.strokeStyle = 'rgba(21, 59, 93, 0.08)';
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR * 0.66, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // House: 4-foot ring (Curling Red wash)
-      ctx.fillStyle = 'rgba(214, 59, 59, 0.05)';
-      ctx.strokeStyle = 'rgba(214, 59, 59, 0.16)';
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR * 0.33, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // The Button (Center)
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = 'rgba(34, 123, 240, 0.2)';
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR * 0.09, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    drawStone(s) {
-      const ctx = this.ctx;
-      const r = s.radius;
-      const alpha = this.gameActive ? 0.25 : 0.72; // Dimmed during active puzzle to highlight board
-
-      ctx.save();
-      ctx.translate(s.x, s.y);
-      ctx.rotate(s.rotation);
-
-      // 1. Soft Ice Contact Shadow
-      ctx.beginPath();
-      ctx.ellipse(2, 4, r * 1.06, r * 0.94, 0, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(16, 47, 74, ${alpha * 0.32})`;
-      ctx.fill();
-
-      // 2. Granite Stone Body (Trefor / Ailsa Craig texture gradient)
-      const gradBody = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.15, 0, 0, r);
-      gradBody.addColorStop(0, `rgba(138, 155, 173, ${alpha})`);
-      gradBody.addColorStop(0.65, `rgba(88, 103, 118, ${alpha})`);
-      gradBody.addColorStop(1, `rgba(50, 62, 74, ${alpha})`);
-
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fillStyle = gradBody;
-      ctx.fill();
-      ctx.strokeStyle = `rgba(16, 47, 74, ${alpha * 0.7})`;
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-
-      // 3. Granite Bevel & Striking Band
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.86, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.35})`;
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-
-      // 4. Colored Team Core Insert
-      const teamColor = s.team === 'red' ? '#d63b3b' : '#f0c647';
-      const gradTeam = ctx.createRadialGradient(-r * 0.2, -r * 0.2, 0, 0, 0, r * 0.62);
-      if (s.team === 'red') {
-        gradTeam.addColorStop(0, '#f25d5d');
-        gradTeam.addColorStop(1, '#b92e34');
-      } else {
-        gradTeam.addColorStop(0, '#ffdf7a');
-        gradTeam.addColorStop(1, '#d8aa32');
-      }
-
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2);
-      ctx.fillStyle = gradTeam;
-      ctx.globalAlpha = alpha;
-      ctx.fill();
-      ctx.strokeStyle = `rgba(16, 47, 74, 0.6)`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // 5. Authentic Goose-Neck Handle (Curling equipment)
-      // Mounting plate center
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.16, 0, Math.PI * 2);
-      ctx.fillStyle = '#2d3748';
-      ctx.fill();
-
-      // Handle goose-neck grip bar
-      ctx.strokeStyle = `rgba(248, 253, 255, ${alpha * 0.95})`;
-      ctx.lineWidth = Math.max(2.2, r * 0.15);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-r * 0.38, 0);
-      ctx.lineTo(r * 0.38, 0);
-      ctx.stroke();
-
-      // Handle bolt / tip accent
-      ctx.beginPath();
-      ctx.arc(0, -r * 0.02, r * 0.08, 0, Math.PI * 2);
-      ctx.fillStyle = s.team === 'red' ? '#ffffff' : '#102f4a';
-      ctx.fill();
-
-      ctx.restore();
-    }
-
-    render() {
-      this.ctx.clearRect(0, 0, this.width, this.height);
-      this.drawRinkMarkings();
-      for (const stone of this.stones) {
-        this.drawStone(stone);
-      }
-    }
-
-    loop(timestamp) {
-      const elapsed = (timestamp - this.lastTimestamp) / 1000;
-      this.lastTimestamp = timestamp;
-
-      // Cap max elapsed to avoid spiral of death when tab is backgrounded
-      this.accumulator += Math.min(elapsed, 0.1);
-
-      while (this.accumulator >= this.fixedDt) {
-        this.physicsStep(this.fixedDt);
-        this.accumulator -= this.fixedDt;
-      }
-
-      this.render();
-      this.animationId = requestAnimationFrame(this.loop);
-    }
-  }
-
-  /* ==========================================================================
-     3. PERSISTENCE LAYER
-     ========================================================================== */
-  class StorageService {
-    static get() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return StorageService.defaultData();
+  };
+
+  // ==========================================================================
+  // SAFE LOCAL STORAGE (DEFENSIVE PERSISTENCE)
+  // ==========================================================================
+  function loadPersistence() {
+    try {
+      const raw = localStorage.getItem(CONFIG.storageKey);
+      if (raw) {
         const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== 'object') return StorageService.defaultData();
-        return Object.assign(StorageService.defaultData(), parsed);
-      } catch (err) {
-        return StorageService.defaultData();
+        if (parsed && typeof parsed === 'object') {
+          if (parsed.stats) state.stats = { ...state.stats, ...parsed.stats };
+          if (parsed.activeSession) state.activeSession = parsed.activeSession;
+        }
       }
-    }
-
-    static save(data) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } catch (err) {
-        console.warn('Storage save failed', err);
-      }
-    }
-
-    static defaultData() {
-      return {
-        version: 1,
-        completedDays: {}, // { [dayId]: { attempts: number, date: string, timestamp: number } }
-        streak: 0,
-        lastCompletedDayIndex: null
-      };
+    } catch (err) {
+      console.warn('Unable to read local storage safely, using defaults.', err);
     }
   }
 
-  /* ==========================================================================
-     4. DETERMINISTIC DAILY SCHEDULER
-     ========================================================================== */
-  class DailyScheduler {
-    static getDaysSinceEpoch() {
-      const now = new Date();
-      const currentUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-      const diff = Math.floor((currentUtc - EPOCH_UTC) / (1000 * 60 * 60 * 24));
-      return Math.max(0, diff); // Clamped minimum to Day 0
-    }
-
-    static getTodayPuzzle(puzzles) {
-      if (!puzzles || !puzzles.length) return null;
-      const dayIndex = DailyScheduler.getDaysSinceEpoch();
-      const puzzleIndex = dayIndex % puzzles.length;
-      return {
-        puzzle: puzzles[puzzleIndex],
-        dayIndex: dayIndex
+  function savePersistence() {
+    try {
+      const payload = {
+        stats: state.stats,
+        activeSession: state.activeSession
       };
-    }
-
-    static getReleasedVaultPuzzles(puzzles) {
-      if (!puzzles || !puzzles.length) return [];
-      const currentDay = DailyScheduler.getDaysSinceEpoch();
-      const released = [];
-      // Strictly days prior to current calendar Day (day < currentDay)
-      for (let day = 0; day < currentDay; day++) {
-        const puzzleIndex = day % puzzles.length;
-        released.push({
-          dayIndex: day,
-          puzzle: puzzles[puzzleIndex]
-        });
-      }
-      return released.reverse(); // Newest released first
+      localStorage.setItem(CONFIG.storageKey, JSON.stringify(payload));
+    } catch (err) {
+      console.warn('Unable to persist game progress.', err);
     }
   }
 
-  /* ==========================================================================
-     5. MEMORY GAME APP ENGINE
-     ========================================================================== */
-  class MemoryApp {
-    constructor() {
-      this.puzzles = (window.CURLING_MEMORY_PUZZLES && Array.isArray(window.CURLING_MEMORY_PUZZLES))
-        ? window.CURLING_MEMORY_PUZZLES
-        : [];
-      
-      this.store = StorageService.get();
-      this.currentDay = DailyScheduler.getDaysSinceEpoch();
+  // ==========================================================================
+  // DETERMINISTIC SEED SHUFFLE
+  // ==========================================================================
+  function createRng(seed) {
+    let s = (seed % 2147483647) || 1;
+    return function () {
+      s = (s * 16807) % 2147483647;
+      return (s - 1) / 2147483646;
+    };
+  }
 
-      this.activePuzzle = null;
-      this.activeDayIndex = null;
-      this.isVaultMode = false;
-      this.cards = [];
-      this.flippedCards = [];
-      this.matchedCount = 0;
-      this.totalPairs = 0;
-      this.attempts = 0;
-      this.isLocked = false;
-
-      this.bgPhysics = null;
-
-      this.initDom();
-      this.initSoundUI();
-      this.initCanvas();
-      this.bindEvents();
-      this.renderMenu();
+  function shuffle(array, seedVal) {
+    const copy = [...array];
+    const rng = createRng(seedVal);
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      const temp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = temp;
     }
+    return copy;
+  }
 
-    initDom() {
-      this.dom = {
-        menuScreen: document.getElementById('menu-screen'),
-        gameScreen: document.getElementById('game-screen'),
-        vaultScreen: document.getElementById('vault-screen'),
-        resultsModal: document.getElementById('results-modal'),
-        soundBtn: document.getElementById('sound-btn'),
-        soundOnIcon: document.querySelector('.sound-on-icon'),
-        soundOffIcon: document.querySelector('.sound-off-icon'),
-        
-        // Menu Elements
-        todayDateLabel: document.getElementById('today-date-label'),
-        todayPuzzleTitle: document.getElementById('today-puzzle-title'),
-        todayPuzzleMeta: document.getElementById('today-puzzle-meta'),
-        todayGridDim: document.getElementById('today-grid-dim'),
-        todayStatusBadge: document.getElementById('today-status-badge'),
-        todayBestVal: document.getElementById('today-best-val'),
-        playTodayBtn: document.getElementById('play-today-btn'),
-        playTodayText: document.getElementById('play-today-text'),
-        openVaultBtn: document.getElementById('open-vault-btn'),
-        vaultCountBadge: document.getElementById('vault-count-badge'),
+  function getTodayDateString() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
 
-        // Game Elements
-        backToMenuBtn: document.getElementById('back-to-menu-btn'),
-        restartGameBtn: document.getElementById('restart-game-btn'),
-        gameModeLabel: document.getElementById('game-mode-label'),
-        gameCategoryTag: document.getElementById('game-category-tag'),
-        hudAttempts: document.getElementById('hud-attempts'),
-        hudMatches: document.getElementById('hud-matches'),
-        hudBest: document.getElementById('hud-best'),
-        memoryGrid: document.getElementById('memory-grid'),
+  // ==========================================================================
+  // CSV PARSING & DATA VALIDATION
+  // ==========================================================================
+  function parseCSV(text) {
+    const rows = [];
+    let curRow = [];
+    let curCell = '';
+    let inQuotes = false;
 
-        // Vault Elements
-        closeVaultBtn: document.getElementById('close-vault-btn'),
-        vaultItemsContainer: document.getElementById('vault-items-container'),
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
 
-        // Modal Elements
-        modalTitle: document.getElementById('modal-title'),
-        modalSubtitle: document.getElementById('modal-subtitle'),
-        resAttempts: document.getElementById('res-attempts'),
-        resEfficiency: document.getElementById('res-efficiency'),
-        resStreak: document.getElementById('res-streak'),
-        modalMenuBtn: document.getElementById('modal-menu-btn'),
-        modalShareBtn: document.getElementById('modal-share-btn'),
-        announcer: document.getElementById('screen-announcer')
-      };
-    }
-
-    initSoundUI() {
-      this.updateSoundDisplay(soundMgr.enabled);
-    }
-
-    updateSoundDisplay(enabled) {
-      if (enabled) {
-        this.dom.soundOnIcon.style.display = 'block';
-        this.dom.soundOffIcon.style.display = 'none';
-        this.dom.soundBtn.setAttribute('aria-pressed', 'true');
+      if (inQuotes) {
+        if (char === '"' && nextChar === '"') {
+          curCell += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = false;
+        } else {
+          curCell += char;
+        }
       } else {
-        this.dom.soundOnIcon.style.display = 'none';
-        this.dom.soundOffIcon.style.display = 'block';
-        this.dom.soundBtn.setAttribute('aria-pressed', 'false');
-      }
-    }
-
-    initCanvas() {
-      const canvas = document.getElementById('rink-canvas');
-      if (canvas) {
-        this.bgPhysics = new RinkBackgroundPhysics(canvas);
-      }
-    }
-
-    announce(message) {
-      if (this.dom.announcer) {
-        this.dom.announcer.textContent = message;
-      }
-    }
-
-    bindEvents() {
-      this.dom.soundBtn.addEventListener('click', () => {
-        const enabled = soundMgr.toggle();
-        this.updateSoundDisplay(enabled);
-        if (enabled) soundMgr.playTap();
-      });
-
-      this.dom.playTodayBtn.addEventListener('click', () => {
-        soundMgr.playTap();
-        const todayData = DailyScheduler.getTodayPuzzle(this.puzzles);
-        if (todayData) {
-          this.launchGame(todayData.puzzle, todayData.dayIndex, false);
-        }
-      });
-
-      this.dom.openVaultBtn.addEventListener('click', () => {
-        soundMgr.playTap();
-        this.showScreen('vault');
-      });
-
-      this.dom.closeVaultBtn.addEventListener('click', () => {
-        soundMgr.playTap();
-        this.showScreen('menu');
-      });
-
-      this.dom.backToMenuBtn.addEventListener('click', () => {
-        soundMgr.playTap();
-        this.showScreen('menu');
-      });
-
-      this.dom.restartGameBtn.addEventListener('click', () => {
-        soundMgr.playTap();
-        if (this.activePuzzle) {
-          this.launchGame(this.activePuzzle, this.activeDayIndex, this.isVaultMode);
-        }
-      });
-
-      this.dom.modalMenuBtn.addEventListener('click', () => {
-        soundMgr.playTap();
-        this.dom.resultsModal.style.display = 'none';
-        this.showScreen('menu');
-      });
-
-      this.dom.modalShareBtn.addEventListener('click', () => {
-        soundMgr.playTap();
-        this.shareResult();
-      });
-
-      // Escape key modal handling
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && this.dom.resultsModal.style.display === 'flex') {
-          this.dom.resultsModal.style.display = 'none';
-        }
-      });
-
-      // 2D Grid Arrow-Key Accessibility Navigation
-      this.dom.memoryGrid.addEventListener('keydown', (e) => {
-        this.handleGridKeyboardNav(e);
-      });
-    }
-
-    showScreen(screen) {
-      this.dom.menuScreen.style.display = 'none';
-      this.dom.gameScreen.style.display = 'none';
-      this.dom.vaultScreen.style.display = 'none';
-      this.dom.resultsModal.style.display = 'none';
-
-      if (this.bgPhysics) {
-        this.bgPhysics.setGameActive(screen === 'game');
-      }
-
-      if (screen === 'menu') {
-        this.renderMenu();
-        this.dom.menuScreen.style.display = 'flex';
-      } else if (screen === 'game') {
-        this.dom.gameScreen.style.display = 'flex';
-      } else if (screen === 'vault') {
-        this.renderVault();
-        this.dom.vaultScreen.style.display = 'flex';
-      }
-    }
-
-    renderMenu() {
-      const todayData = DailyScheduler.getTodayPuzzle(this.puzzles);
-      if (!todayData) return;
-
-      const { puzzle, dayIndex } = todayData;
-      const completion = this.store.completedDays[dayIndex];
-
-      this.dom.todayDateLabel.textContent = `Day ${dayIndex} • Today`;
-      this.dom.todayPuzzleTitle.textContent = puzzle.title;
-      this.dom.todayPuzzleMeta.textContent = `Curriculum: ${puzzle.category}`;
-      
-      const cardCount = puzzle.pairs.length * 2;
-      this.dom.todayGridDim.textContent = cardCount === 16 ? '4 × 4' : '3 × 4';
-
-      if (completion) {
-        this.dom.todayStatusBadge.textContent = 'Completed';
-        this.dom.todayStatusBadge.className = 'stat-val status-completed';
-        this.dom.todayBestVal.textContent = `${completion.attempts} tries`;
-        this.dom.playTodayText.textContent = 'Replay Today';
-      } else {
-        this.dom.todayStatusBadge.textContent = 'Ready';
-        this.dom.todayStatusBadge.className = 'stat-val status-ready';
-        this.dom.todayBestVal.textContent = '—';
-        this.dom.playTodayText.textContent = 'Play Today';
-      }
-
-      const releasedVault = DailyScheduler.getReleasedVaultPuzzles(this.puzzles);
-      this.dom.vaultCountBadge.textContent = `${releasedVault.length} Released`;
-    }
-
-    renderVault() {
-      const container = this.dom.vaultItemsContainer;
-      container.innerHTML = '';
-
-      const releasedVault = DailyScheduler.getReleasedVaultPuzzles(this.puzzles);
-
-      if (releasedVault.length === 0) {
-        const emptyNotice = document.createElement('div');
-        emptyNotice.className = 'empty-vault-notice';
-        emptyNotice.textContent = 'The Vault opens on Day 1 once previous ends are archived.';
-        container.appendChild(emptyNotice);
-        return;
-      }
-
-      releasedVault.forEach(({ dayIndex, puzzle }) => {
-        const completion = this.store.completedDays[dayIndex];
-        const card = document.createElement('div');
-        card.className = 'vault-row-card';
-        card.tabIndex = 0;
-        card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', `Play Day ${dayIndex} ${puzzle.title}`);
-
-        const info = document.createElement('div');
-        info.className = 'vault-info-cluster';
-
-        const dateTag = document.createElement('span');
-        dateTag.className = 'vault-date-tag';
-        dateTag.textContent = `Day ${dayIndex} • ${puzzle.difficulty}`;
-
-        const title = document.createElement('span');
-        title.className = 'vault-item-title';
-        title.textContent = puzzle.title;
-
-        info.appendChild(dateTag);
-        info.appendChild(title);
-
-        const statusCluster = document.createElement('div');
-        statusCluster.className = 'vault-status-cluster';
-
-        const pill = document.createElement('span');
-        pill.className = `vault-pill ${completion ? 'is-win' : ''}`;
-        pill.textContent = completion ? `Won (${completion.attempts})` : 'Play';
-
-        statusCluster.appendChild(pill);
-        card.appendChild(info);
-        card.appendChild(statusCluster);
-
-        const startVaultGame = () => {
-          soundMgr.playTap();
-          this.launchGame(puzzle, dayIndex, true);
-        };
-
-        card.addEventListener('click', startVaultGame);
-        card.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            startVaultGame();
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === ',') {
+          curRow.push(curCell.trim());
+          curCell = '';
+        } else if (char === '\n' || char === '\r') {
+          curRow.push(curCell.trim());
+          if (curRow.length > 1 || (curRow.length === 1 && curRow[0] !== '')) {
+            rows.push(curRow);
           }
-        });
+          curRow = [];
+          curCell = '';
+          if (char === '\r' && nextChar === '\n') i++;
+        } else {
+          curCell += char;
+        }
+      }
+    }
+    if (curCell.length || curRow.length) {
+      curRow.push(curCell.trim());
+      rows.push(curRow);
+    }
+    return rows;
+  }
 
-        container.appendChild(card);
+  function mapAndValidateRecords(rows) {
+    if (rows.length < 2) return [];
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    return rows.slice(1).map(row => {
+      const record = {};
+      headers.forEach((h, i) => {
+        record[h] = row[i] ? row[i].trim() : '';
       });
+      const items = [];
+      for (let i = 1; i <= 8; i++) {
+        const itemVal = record[`item_${i}`] || record[`item${i}`] || `Item ${i}`;
+        items.push(itemVal);
+      }
+      return {
+        date: record.date || '',
+        title: record.title || 'Untitled Memory Puzzle',
+        items
+      };
+    }).filter(p => p.date && /^\d{4}-\d{2}-\d{2}$/.test(p.date));
+  }
+
+  async function loadPuzzles() {
+    state.todayDate = getTodayDateString();
+    const res = await fetch(CONFIG.csvPath, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Data file unreachable');
+    const text = await res.text();
+    const rows = parseCSV(text);
+    const parsed = mapAndValidateRecords(rows);
+
+    if (!parsed.length) throw new Error('No valid puzzle records found');
+
+    // Chronological sort
+    parsed.sort((a, b) => a.date.localeCompare(b.date));
+    state.puzzles = parsed;
+
+    // Daily puzzle: exact date match, fallback to latest past date, or first available
+    const exact = parsed.find(p => p.date === state.todayDate);
+    if (exact) {
+      state.todayPuzzle = exact;
+    } else {
+      const pastOrToday = parsed.filter(p => p.date <= state.todayDate);
+      state.todayPuzzle = pastOrToday.length
+        ? pastOrToday[pastOrToday.length - 1]
+        : parsed[0];
+    }
+  }
+
+  // ==========================================================================
+  // NAVIGATION & VIEW HIERARCHY
+  // ==========================================================================
+  function showMainView(viewName) {
+    soundSystem.playNavigation();
+
+    // Show main header, hide gameplay header
+    document.getElementById('main-header').classList.remove('hidden');
+    document.getElementById('gameplay-header').classList.add('hidden');
+
+    // Update active state on navigation tabs
+    const navDaily = document.getElementById('nav-daily');
+    const navVault = document.getElementById('nav-vault');
+
+    navDaily.classList.toggle('active', viewName === 'daily');
+    navVault.classList.toggle('active', viewName === 'vault');
+
+    // Switch views
+    document.querySelectorAll('.app-main .view').forEach(v => v.classList.add('hidden'));
+
+    if (viewName === 'daily') {
+      renderDailyView();
+      document.getElementById('view-daily').classList.remove('hidden');
+    } else if (viewName === 'vault') {
+      renderVaultView();
+      document.getElementById('view-vault').classList.remove('hidden');
+    }
+  }
+
+  function showGameplayView() {
+    soundSystem.playNavigation();
+
+    // Show dedicated gameplay header with puzzle title & back button
+    document.getElementById('main-header').classList.add('hidden');
+    document.getElementById('gameplay-header').classList.remove('hidden');
+
+    document.querySelectorAll('.app-main .view').forEach(v => v.classList.add('hidden'));
+    document.getElementById('view-game').classList.remove('hidden');
+  }
+
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => el.classList.add('hidden'), 2200);
+  }
+
+  // ==========================================================================
+  // DAILY VIEW RENDER
+  // ==========================================================================
+  function renderDailyView() {
+    const p = state.todayPuzzle;
+    if (!p) return;
+
+    document.getElementById('daily-date').textContent = p.date;
+    document.getElementById('daily-title').textContent = p.title;
+
+    const completed = state.stats.history[p.date];
+    const statusDesc = document.getElementById('daily-status');
+    const playBtn = document.getElementById('btn-play-daily');
+
+    if (completed) {
+      statusDesc.textContent = `Completed in ${completed.turns} deliveries (${completed.accuracy} ice accuracy)`;
+      playBtn.textContent = 'Replay Daily Puzzle';
+    } else if (state.activeSession && state.activeSession.date === p.date) {
+      statusDesc.textContent = `End In Progress (${state.activeSession.matchedCardCount / 2} / 8 pairs in the house)`;
+      playBtn.textContent = 'Resume Daily Puzzle';
+    } else {
+      statusDesc.textContent = 'Sheet prepared & ready for delivery';
+      playBtn.textContent = 'Play Daily Puzzle';
     }
 
-    launchGame(puzzle, dayIndex, isVault = false) {
-      this.activePuzzle = puzzle;
-      this.activeDayIndex = dayIndex;
-      this.isVaultMode = isVault;
-      this.attempts = 0;
-      this.matchedCount = 0;
-      this.totalPairs = puzzle.pairs.length;
-      this.flippedCards = [];
-      this.isLocked = false;
+    // Quick stats update
+    const s = state.stats;
+    document.getElementById('quick-streak').textContent = s.currentStreak;
+    document.getElementById('quick-completed').textContent = s.completed;
+    document.getElementById('quick-best-turns').textContent = s.bestTurns !== null ? s.bestTurns : '—';
+  }
 
-      this.dom.gameModeLabel.textContent = isVault ? `Day ${dayIndex}` : 'Today';
-      this.dom.gameCategoryTag.textContent = puzzle.category;
-      this.dom.hudAttempts.textContent = '0';
-      this.dom.hudMatches.textContent = `0 / ${this.totalPairs}`;
+  // ==========================================================================
+  // VAULT VIEW RENDER (Historical Archive Only)
+  // ==========================================================================
+  function renderVaultView() {
+    const container = document.getElementById('vault-list');
+    container.innerHTML = '';
 
-      const previous = this.store.completedDays[dayIndex];
-      this.dom.hudBest.textContent = previous ? `${previous.attempts}` : '—';
+    // Filter out future puzzles AND exclude the current Daily Puzzle
+    const archivePuzzles = state.puzzles.filter(
+      p => p.date <= state.todayDate && p.date !== state.todayPuzzle.date
+    );
 
-      // Assemble pairs
-      const deck = [];
-      puzzle.pairs.forEach((pair) => {
-        deck.push({ id: `${pair.id}_A`, pairId: pair.id, label: pair.label, iconSvg: pair.iconSvg });
-        deck.push({ id: `${pair.id}_B`, pairId: pair.id, label: pair.label, iconSvg: pair.iconSvg });
-      });
+    // Sort descending by release date
+    archivePuzzles.sort((a, b) => b.date.localeCompare(a.date));
 
-      // Deterministic Fisher-Yates shuffle seeded by dayIndex
-      this.shuffleDeck(deck, dayIndex);
-      this.cards = deck;
-
-      this.renderBoard();
-      this.showScreen('game');
-      this.announce(`Puzzle started: ${puzzle.title}. 16 tiles to match.`);
+    if (!archivePuzzles.length) {
+      container.innerHTML = '<div class="card status-card ice-panel-surface"><p class="status-text">No previous tournaments recorded in the archive yet.</p></div>';
+      return;
     }
 
-    shuffleDeck(deck, seedInt) {
-      let seed = (seedInt + 1) * 1103515245 + 12345;
-      const rnd = () => {
-        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-        return seed / 0x7fffffff;
+    archivePuzzles.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'vault-item';
+
+      const done = state.stats.history[p.date];
+      const badgeText = done
+        ? `Solved: ${done.turns} turns`
+        : 'Unplayed';
+
+      item.innerHTML = `
+        <div class="vault-info">
+          <span class="meta-date">${p.date}</span>
+          <span class="vault-title">${p.title}</span>
+          <span class="vault-badge">${badgeText}</span>
+        </div>
+        <button class="btn btn-sm ${done ? '' : 'btn-primary'}" type="button">
+          ${done ? 'Replay' : 'Play'}
+        </button>
+      `;
+
+      item.querySelector('button').onclick = () => {
+        soundSystem.playTap();
+        loadPuzzle(p);
       };
 
-      for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(rnd() * (i + 1));
-        const temp = deck[i];
-        deck[i] = deck[j];
-        deck[j] = temp;
-      }
+      container.appendChild(item);
+    });
+  }
+
+  // ==========================================================================
+  // GAMEPLAY ENGINE
+  // ==========================================================================
+  function loadPuzzle(puzzle) {
+    state.activePuzzle = puzzle;
+    state.flippedIndices = [];
+    state.isLocked = false;
+
+    // Set Dedicated Gameplay Header title
+    document.getElementById('gameplay-title').textContent = puzzle.title;
+
+    // Generate 16 deterministic cards
+    const raw = [];
+    puzzle.items.forEach((label, id) => {
+      raw.push({ id, name: label });
+      raw.push({ id, name: label });
+    });
+
+    const seedVal = parseInt(puzzle.date.replace(/-/g, ''), 10) || 4242;
+    state.boardCards = shuffle(raw, seedVal);
+
+    // Check for in-progress session recovery
+    const isResuming = state.activeSession && state.activeSession.date === puzzle.date;
+    if (isResuming) {
+      state.turns = state.activeSession.turns || 0;
+      state.matchedCardCount = state.activeSession.matchedCardCount || 0;
+    } else {
+      state.turns = 0;
+      state.matchedCardCount = 0;
+      state.activeSession = {
+        date: puzzle.date,
+        turns: 0,
+        matchedCardCount: 0,
+        matchedIds: []
+      };
+      savePersistence();
     }
 
-    renderBoard() {
-      const grid = this.dom.memoryGrid;
-      grid.innerHTML = '';
+    document.getElementById('stat-turns').textContent = state.turns;
+    document.getElementById('stat-pairs').textContent = `${state.matchedCardCount / 2} / 8`;
+    document.getElementById('game-feedback').textContent = 'Deliver stones and pair up matching labels to clear the house.';
 
-      this.cards.forEach((cardData, idx) => {
-        const cardBtn = document.createElement('button');
-        cardBtn.className = 'memory-card';
-        cardBtn.type = 'button';
-        cardBtn.dataset.index = idx;
-        cardBtn.dataset.pairId = cardData.pairId;
-        cardBtn.setAttribute('role', 'gridcell');
-        cardBtn.setAttribute('aria-label', `Tile ${idx + 1}: Face down`);
+    const board = document.getElementById('game-board');
+    board.innerHTML = '';
 
-        // Card Back (House Motif with authentic curling geometry)
-        const back = document.createElement('div');
-        back.className = 'card-face card-back';
-        back.innerHTML = `
-          <svg class="card-back-house" viewBox="0 0 32 32" aria-hidden="true">
-            <circle cx="16" cy="16" r="14" fill="#f0f8fd" stroke="#227bf0" stroke-width="2"/>
-            <circle cx="16" cy="16" r="9" fill="#ffffff" stroke="#d63b3b" stroke-width="2"/>
-            <circle cx="16" cy="16" r="4" fill="#ffffff" stroke="#227bf0" stroke-width="1.5"/>
-            <circle cx="16" cy="16" r="1.5" fill="#d63b3b"/>
-          </svg>
-        `;
+    state.boardCards.forEach((card, index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'card-tile face-down';
+      btn.dataset.index = index;
+      btn.textContent = '🥌';
+      btn.setAttribute('aria-label', `Curling Stone ${index + 1}`);
 
-        // Card Front (Revealed equipment SVG + Dark Blue Label)
-        const front = document.createElement('div');
-        front.className = 'card-face card-front';
-        front.innerHTML = `
-          <div class="card-icon-wrap" aria-hidden="true">${cardData.iconSvg}</div>
-          <span class="card-title">${cardData.label}</span>
-        `;
+      // Re-apply matched state if resuming
+      if (isResuming && state.activeSession.matchedIds.includes(card.id)) {
+        btn.classList.remove('face-down');
+        btn.classList.add('matched');
+        btn.textContent = card.name;
+        btn.setAttribute('aria-disabled', 'true');
+      }
 
-        cardBtn.appendChild(back);
-        cardBtn.appendChild(front);
+      btn.onclick = () => handleCardInteraction(index);
+      board.appendChild(btn);
+    });
 
-        cardBtn.addEventListener('click', () => this.handleCardClick(cardBtn, cardData));
+    showGameplayView();
+  }
 
-        grid.appendChild(cardBtn);
-      });
+  function handleCardInteraction(index) {
+    if (state.isLocked) return;
+    if (state.flippedIndices.includes(index)) return;
+
+    const board = document.getElementById('game-board');
+    const btn = board.children[index];
+    if (btn.classList.contains('matched')) return;
+
+    // Audio & tactile response
+    soundSystem.playTap();
+
+    // Flip card up
+    state.flippedIndices.push(index);
+    btn.classList.remove('face-down');
+    btn.classList.add('flipped');
+    btn.textContent = state.boardCards[index].name;
+
+    if (state.flippedIndices.length === 2) {
+      state.turns++;
+      document.getElementById('stat-turns').textContent = state.turns;
+      evaluateCardPair();
     }
+  }
 
-    handleGridKeyboardNav(e) {
-      const activeEl = document.activeElement;
-      if (!activeEl || !activeEl.classList.contains('memory-card')) return;
+  function evaluateCardPair() {
+    const [idx1, idx2] = state.flippedIndices;
+    const card1 = state.boardCards[idx1];
+    const card2 = state.boardCards[idx2];
+    const board = document.getElementById('game-board');
+    const btn1 = board.children[idx1];
+    const btn2 = board.children[idx2];
 
-      const idx = parseInt(activeEl.dataset.index, 10);
-      if (isNaN(idx)) return;
+    if (card1.id === card2.id) {
+      // Correct match
+      soundSystem.playMatch();
 
-      const cols = 4;
-      const total = this.cards.length;
-      let nextIdx = idx;
+      btn1.classList.remove('flipped');
+      btn2.classList.remove('flipped');
+      btn1.classList.add('matched');
+      btn2.classList.add('matched');
+      btn1.setAttribute('aria-disabled', 'true');
+      btn2.setAttribute('aria-disabled', 'true');
 
-      switch (e.key) {
-        case 'ArrowRight':
-          nextIdx = (idx + 1) % total;
-          e.preventDefault();
-          break;
-        case 'ArrowLeft':
-          nextIdx = (idx - 1 + total) % total;
-          e.preventDefault();
-          break;
-        case 'ArrowDown':
-          nextIdx = (idx + cols) % total;
-          e.preventDefault();
-          break;
-        case 'ArrowUp':
-          nextIdx = (idx - cols + total) % total;
-          e.preventDefault();
-          break;
-        case 'Home':
-          nextIdx = 0;
-          e.preventDefault();
-          break;
-        case 'End':
-          nextIdx = total - 1;
-          e.preventDefault();
-          break;
-        default:
-          return;
-      }
+      state.matchedCardCount += 2;
+      state.flippedIndices = [];
+      const pairsFound = state.matchedCardCount / 2;
+      document.getElementById('stat-pairs').textContent = `${pairsFound} / 8`;
+      document.getElementById('game-feedback').textContent = `In the house: ${card1.name}!`;
 
-      const nextCard = this.dom.memoryGrid.querySelector(`[data-index="${nextIdx}"]`);
-      if (nextCard) {
-        nextCard.focus();
-      }
-    }
-
-    handleCardClick(cardEl, cardData) {
-      if (this.isLocked) return;
-      if (cardEl.classList.contains('is-flipped') || cardEl.classList.contains('is-matched')) return;
-
-      soundMgr.playFlip();
-      cardEl.classList.add('is-flipped');
-      cardEl.setAttribute('aria-label', `${cardData.label}`);
-      this.flippedCards.push({ element: cardEl, data: cardData });
-
-      if (this.flippedCards.length === 2) {
-        this.evaluateTurn();
-      }
-    }
-
-    evaluateTurn() {
-      this.attempts++;
-      this.dom.hudAttempts.textContent = this.attempts;
-
-      const [cardA, cardB] = this.flippedCards;
-      const isMatch = cardA.data.pairId === cardB.data.pairId;
-
-      if (isMatch) {
-        this.isLocked = true;
-        setTimeout(() => {
-          soundMgr.playMatch();
-          cardA.element.classList.add('is-matched');
-          cardB.element.classList.add('is-matched');
-          cardA.element.setAttribute('aria-label', `${cardA.data.label} (Matched)`);
-          cardB.element.setAttribute('aria-label', `${cardB.data.label} (Matched)`);
-
-          this.matchedCount++;
-          this.dom.hudMatches.textContent = `${this.matchedCount} / ${this.totalPairs}`;
-          this.flippedCards = [];
-          this.isLocked = false;
-          this.announce(`Match found! ${cardA.data.label}. ${this.matchedCount} of ${this.totalPairs} pairs cleared.`);
-
-          if (this.matchedCount === this.totalPairs) {
-            this.handleVictory();
-          }
-        }, 300);
-      } else {
-        this.isLocked = true;
-        setTimeout(() => {
-          soundMgr.playMismatch();
-          cardA.element.classList.add('is-shaking');
-          cardB.element.classList.add('is-shaking');
-        }, 380);
-
-        setTimeout(() => {
-          cardA.element.classList.remove('is-flipped', 'is-shaking');
-          cardB.element.classList.remove('is-flipped', 'is-shaking');
-          cardA.element.setAttribute('aria-label', 'Tile face down');
-          cardB.element.setAttribute('aria-label', 'Tile face down');
-          this.flippedCards = [];
-          this.isLocked = false;
-        }, 860);
-      }
-    }
-
-    handleVictory() {
-      soundMgr.playWin();
-
-      const dayId = this.activeDayIndex;
-      const existing = this.store.completedDays[dayId];
-      const isBetter = !existing || this.attempts < existing.attempts;
-
-      if (!existing || isBetter) {
-        this.store.completedDays[dayId] = {
-          attempts: this.attempts,
-          date: new Date().toISOString(),
-          timestamp: Date.now()
-        };
-      }
-
-      // Streak integrity: Only increment for Today's puzzle
-      if (!this.isVaultMode) {
-        if (this.store.lastCompletedDayIndex === dayId - 1) {
-          this.store.streak = (this.store.streak || 0) + 1;
-        } else if (this.store.lastCompletedDayIndex !== dayId) {
-          this.store.streak = 1;
+      // Update active session progress
+      if (state.activeSession && state.activeSession.date === state.activePuzzle.date) {
+        state.activeSession.turns = state.turns;
+        state.activeSession.matchedCardCount = state.matchedCardCount;
+        if (!state.activeSession.matchedIds.includes(card1.id)) {
+          state.activeSession.matchedIds.push(card1.id);
         }
-        this.store.lastCompletedDayIndex = dayId;
+        savePersistence();
       }
 
-      StorageService.save(this.store);
-
-      const accuracy = Math.round((this.totalPairs / this.attempts) * 100);
-      this.dom.resAttempts.textContent = this.attempts;
-      this.dom.resEfficiency.textContent = `${Math.min(100, accuracy)}%`;
-      this.dom.resStreak.textContent = this.store.streak || 1;
-
+      if (state.matchedCardCount === 16) {
+        setTimeout(handlePuzzleCompletion, 360);
+      }
+    } else {
+      // Mismatch
+      soundSystem.playMismatch();
+      state.isLocked = true;
+      document.getElementById('game-feedback').textContent = 'Heavy delivery. Stones mismatch.';
       setTimeout(() => {
-        this.dom.resultsModal.style.display = 'flex';
-        this.announce(`Puzzle cleared in ${this.attempts} attempts with ${accuracy}% shot accuracy.`);
-      }, 500);
-    }
-
-    shareResult() {
-      const dayId = this.activeDayIndex;
-      const title = this.activePuzzle ? this.activePuzzle.title : 'Memory';
-      const text = `Curling Puzzles — Memory (Day ${dayId})\n🥌 "${title}"\n🎯 ${this.attempts} Attempts | ${this.dom.resEfficiency.textContent} Accuracy\nhttps://tileworksgamesstudio.github.io/Curling-Menu/`;
-
-      if (navigator.share) {
-        navigator.share({ title: 'Curling Puzzles — Memory', text })
-          .catch(() => this.copyToClipboard(text));
-      } else {
-        this.copyToClipboard(text);
-      }
-    }
-
-    copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Results copied to clipboard!');
-      }).catch(() => {
-        alert(text);
-      });
+        btn1.classList.remove('flipped');
+        btn2.classList.remove('flipped');
+        btn1.classList.add('face-down');
+        btn2.classList.add('face-down');
+        btn1.textContent = '🥌';
+        btn2.textContent = '🥌';
+        state.flippedIndices = [];
+        state.isLocked = false;
+      }, 750);
     }
   }
 
-  // Self-bootstrapping entry point
-  document.addEventListener('DOMContentLoaded', () => {
-    window.curlingMemoryApp = new MemoryApp();
-  });
+  function handlePuzzleCompletion() {
+    soundSystem.playCompletion();
+
+    const turns = state.turns;
+    const accuracy = `${Math.max(0, Math.round((8 / turns) * 100))}%`;
+    const dateKey = state.activePuzzle.date;
+    const s = state.stats;
+
+    // Clear active temporary session once cleared
+    state.activeSession = null;
+
+    if (!s.history[dateKey]) {
+      s.played++;
+      s.completed++;
+      s.currentStreak++;
+      if (s.currentStreak > s.bestStreak) s.bestStreak = s.currentStreak;
+      if (s.bestTurns === null || turns < s.bestTurns) s.bestTurns = turns;
+      s.turnHistory.push(turns);
+      s.history[dateKey] = { turns, accuracy };
+    }
+    savePersistence();
+
+    document.getElementById('complete-turns').textContent = turns;
+    document.getElementById('complete-accuracy').textContent = accuracy;
+
+    const list = document.getElementById('complete-items-list');
+    list.innerHTML = '';
+    state.activePuzzle.items.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      list.appendChild(li);
+    });
+
+    openModal('modal-complete');
+  }
+
+  // ==========================================================================
+  // MODALS & DIALOGS
+  // ==========================================================================
+  function openModal(modalId) {
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+    const target = document.getElementById(modalId);
+    if (target) {
+      target.classList.remove('hidden');
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+  }
+
+  function closeAllModals() {
+    soundSystem.playNavigation();
+    document.querySelectorAll('.modal, .modal-overlay').forEach(el => el.classList.add('hidden'));
+  }
+
+  function renderStatsModal() {
+    const s = state.stats;
+    document.getElementById('stat-modal-played').textContent = s.played;
+    document.getElementById('stat-modal-completed').textContent = s.completed;
+    document.getElementById('stat-modal-streak').textContent = s.currentStreak;
+    document.getElementById('stat-modal-best-streak').textContent = s.bestStreak;
+    document.getElementById('stat-modal-best-turns').textContent = s.bestTurns !== null ? s.bestTurns : '—';
+
+    const avg = s.turnHistory.length
+      ? (s.turnHistory.reduce((a, b) => a + b, 0) / s.turnHistory.length).toFixed(1)
+      : '—';
+    document.getElementById('stat-modal-avg-turns').textContent = avg;
+  }
+
+  function shareResult() {
+    soundSystem.playTap();
+    const turns = state.turns;
+    const acc = Math.max(0, Math.round((8 / turns) * 100));
+    const text = `Memory Match — Canadian Curling Edition\n${state.activePuzzle.title}\nDate: ${state.activePuzzle.date}\nCompleted in ${turns} deliveries (${acc}% accuracy)`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Tournament scorecard copied to clipboard');
+      }).catch(() => {
+        showToast('Unable to copy scorecard');
+      });
+    } else {
+      showToast('Scorecard sharing not supported on this browser');
+    }
+  }
+
+  // ==========================================================================
+  // AMBIENT CURLING ICONS & CANADIAN MAPLE LEAF SYSTEM
+  // EXACTLY 12 CURLING ICONS + AUTHORITATIVE MAPLE LEAF (Section 65.6)
+  // ==========================================================================
+  const CURLING_ICON_TEMPLATES = [
+    // 1. Curling Stone
+    `<svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="18" fill="var(--c-curling-dark)" opacity="0.14"/><circle cx="24" cy="24" r="14" stroke="var(--c-canadian-red)" stroke-width="2.5"/><path d="M18 20h12v4a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3z" fill="var(--c-curling-dark)"/></svg>`,
+    // 2. Curling House / Rings
+    `<svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="var(--c-curling-navy)" stroke-width="2" opacity="0.25"/><circle cx="24" cy="24" r="13" stroke="var(--c-canadian-red)" stroke-width="2" opacity="0.3"/><circle cx="24" cy="24" r="5" fill="var(--c-stone-yellow)" opacity="0.4"/></svg>`,
+    // 3. Curling Broom
+    `<svg viewBox="0 0 48 48" fill="none"><line x1="10" y1="38" x2="34" y2="12" stroke="var(--c-curling-dark)" stroke-width="2.5"/><rect x="30" y="8" width="12" height="6" rx="2" transform="rotate(45 30 8)" fill="var(--c-canadian-red)"/></svg>`,
+    // 4. Brush Head
+    `<svg viewBox="0 0 48 48" fill="none"><rect x="10" y="18" width="28" height="12" rx="3" fill="var(--c-stone-yellow)" stroke="var(--c-curling-dark)" stroke-width="2"/><line x1="16" y1="18" x2="16" y2="30" stroke="var(--c-curling-dark)" stroke-width="1.5"/><line x1="24" y1="18" x2="24" y2="30" stroke="var(--c-curling-dark)" stroke-width="1.5"/><line x1="32" y1="18" x2="32" y2="30" stroke="var(--c-curling-dark)" stroke-width="1.5"/></svg>`,
+    // 5. Hack
+    `<svg viewBox="0 0 48 48" fill="none"><rect x="14" y="14" width="20" height="20" rx="3" stroke="var(--c-curling-dark)" stroke-width="2.5"/><line x1="14" y1="24" x2="34" y2="24" stroke="var(--c-canadian-red)" stroke-width="2"/><line x1="20" y1="14" x2="20" y2="34" stroke="var(--c-curling-dark)" stroke-width="1.5"/><line x1="28" y1="14" x2="28" y2="34" stroke="var(--c-curling-dark)" stroke-width="1.5"/></svg>`,
+    // 6. Stone Handle
+    `<svg viewBox="0 0 48 48" fill="none"><path d="M12 28h24v-6a6 6 0 0 0-6-6H18a6 6 0 0 0-6 6z" stroke="var(--c-curling-dark)" stroke-width="2.5"/><rect x="20" y="12" width="8" height="4" rx="1.5" fill="var(--c-canadian-red)"/></svg>`,
+    // 7. Hog Line
+    `<svg viewBox="0 0 48 48" fill="none"><line x1="4" y1="24" x2="44" y2="24" stroke="var(--c-canadian-red)" stroke-width="4"/><line x1="4" y1="20" x2="44" y2="20" stroke="var(--c-curling-dark)" stroke-width="1" opacity="0.3"/><line x1="4" y1="28" x2="44" y2="28" stroke="var(--c-curling-dark)" stroke-width="1" opacity="0.3"/></svg>`,
+    // 8. Back Line
+    `<svg viewBox="0 0 48 48" fill="none"><line x1="4" y1="24" x2="44" y2="24" stroke="var(--c-curling-navy)" stroke-width="2.5"/><circle cx="24" cy="24" r="5" stroke="var(--c-canadian-red)" stroke-width="2"/></svg>`,
+    // 9. Centre Line
+    `<svg viewBox="0 0 48 48" fill="none"><line x1="24" y1="4" x2="24" y2="44" stroke="var(--c-curling-navy)" stroke-width="2.5"/><polygon points="24,12 20,18 28,18" fill="var(--c-canadian-red)"/><polygon points="24,36 20,30 28,30" fill="var(--c-canadian-red)"/></svg>`,
+    // 10. Curling Pebble Ice Texture
+    `<svg viewBox="0 0 48 48" fill="none"><circle cx="16" cy="16" r="3.5" fill="var(--c-canadian-red)" opacity="0.4"/><circle cx="32" cy="18" r="4.5" fill="var(--c-stone-yellow)" opacity="0.4"/><circle cx="22" cy="32" r="3" fill="var(--c-curling-mid-blue)" opacity="0.35"/><circle cx="34" cy="34" r="2.5" fill="var(--c-curling-dark)" opacity="0.3"/></svg>`,
+    // 11. Scoreboard / End Marker
+    `<svg viewBox="0 0 48 48" fill="none"><rect x="10" y="10" width="28" height="28" rx="2" stroke="var(--c-curling-dark)" stroke-width="2"/><line x1="10" y1="24" x2="38" y2="24" stroke="var(--c-curling-dark)" stroke-width="1.5"/><line x1="24" y1="10" x2="24" y2="38" stroke="var(--c-curling-dark)" stroke-width="1.5"/><circle cx="17" cy="17" r="2.5" fill="var(--c-canadian-red)"/></svg>`,
+    // 12. Skip / Delivery Silhouette
+    `<svg viewBox="0 0 48 48" fill="none"><circle cx="16" cy="16" r="4" fill="var(--c-curling-dark)"/><path d="M12 28l8-4 8 8 10-2" stroke="var(--c-curling-dark)" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="22" x2="36" y2="36" stroke="var(--c-canadian-red)" stroke-width="2"/></svg>`,
+    // 13. AUTHORITATIVE CANADIAN MAPLE LEAF (Section 65.6 - exact geometry preserved)
+    `<svg viewBox="0 0 298.72 341.12" fill="none" aria-hidden="true" focusable="false"><g transform="translate(-250.85 -233.44)"><path d="m325.8 480.69 8.1527-20.11-65.765-60.873 17.392-9.2397-7.6092-44.568 39.676 4.3481 11.957-16.849 30.98 39.133-17.392-84.788 26.089 8.6962 25.001-45.655 23.371 44.568 27.719-7.6092-17.936 84.244 30.98-38.046 10.87 16.305 39.133-3.8046-5.9786 42.937 17.936 11.414-65.765 60.33 7.0656 21.197-58.699-9.7832 1.6305 72.83h-22.284l3.2611-73.374z" fill="var(--c-canadian-red)"/></g></svg>`
+  ];
+
+  function initAmbientCurlingField() {
+    const container = document.getElementById('curling-icons-field');
+    if (!container) return;
+
+    // Respect prefers-reduced-motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    const maxItems = window.innerWidth < 480 ? 12 : 20;
+    const activeElements = [];
+
+    function spawnIcon() {
+      if (activeElements.length >= maxItems) return;
+
+      const el = document.createElement('div');
+      el.className = 'ambient-curling-elem';
+
+      // 3 perceived depth levels
+      const depthSeed = Math.random();
+      let depthClass = 'depth-middle';
+      let size = 32;
+      let duration = 22;
+      let opacity = 0.28;
+
+      if (depthSeed < 0.4) {
+        depthClass = 'depth-distant';
+        size = 20 + Math.random() * 8;
+        duration = 30 + Math.random() * 15;
+        opacity = 0.14 + Math.random() * 0.08;
+      } else if (depthSeed > 0.8) {
+        depthClass = 'depth-near';
+        size = 38 + Math.random() * 14;
+        duration = 16 + Math.random() * 8;
+        opacity = 0.35 + Math.random() * 0.15;
+      }
+
+      el.classList.add(depthClass);
+      el.style.width = `${size}px`;
+      el.style.height = `${size}px`;
+
+      // Select random icon template
+      const templateIndex = Math.floor(Math.random() * CURLING_ICON_TEMPLATES.length);
+      el.innerHTML = CURLING_ICON_TEMPLATES[templateIndex];
+
+      const startX = Math.random() * (window.innerWidth - size);
+      const driftX = (Math.random() - 0.5) * 80;
+      const startRot = Math.random() * 360;
+      const endRot = startRot + (Math.random() > 0.5 ? 90 : -90);
+
+      el.style.left = `${startX}px`;
+      el.style.top = `${window.innerHeight + size}px`;
+      el.style.opacity = `${opacity}`;
+
+      container.appendChild(el);
+      activeElements.push(el);
+
+      const startTime = performance.now();
+      const totalDistance = window.innerHeight + size * 2;
+
+      function animateStep(currentTime) {
+        const elapsed = (currentTime - startTime) / 1000;
+        const progress = elapsed / duration;
+
+        if (progress >= 1 || !el.isConnected) {
+          el.remove();
+          const idx = activeElements.indexOf(el);
+          if (idx !== -1) activeElements.splice(idx, 1);
+          return;
+        }
+
+        const currentY = (window.innerHeight + size) - progress * totalDistance;
+        const currentX = startX + Math.sin(progress * Math.PI * 2) * driftX;
+        const currentRot = startRot + (endRot - startRot) * progress;
+
+        el.style.transform = `translate3d(${currentX - startX}px, ${currentY - (window.innerHeight + size)}px, 0) rotate(${currentRot}deg)`;
+        requestAnimationFrame(animateStep);
+      }
+
+      requestAnimationFrame(animateStep);
+    }
+
+    // Initial staggered population
+    for (let i = 0; i < maxItems / 2; i++) {
+      setTimeout(spawnIcon, i * 600);
+    }
+
+    // Continuous randomized spawner
+    setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        spawnIcon();
+      }
+    }, 1800);
+  }
+
+  // ==========================================================================
+  // DISCIPLINED LUXURY WEB AUDIO SYNTHESIS SYSTEM
+  // Safe user-gesture activation, subtle, muted curling sounds
+  // ==========================================================================
+  const soundSystem = (function () {
+    let ctx = null;
+
+    function getContext() {
+      if (!ctx && (window.AudioContext || window.webkitAudioContext)) {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          ctx = new AudioCtx();
+        } catch (_) {
+          ctx = null;
+        }
+      }
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      return ctx;
+    }
+
+    function playTap() {
+      try {
+        const audio = getContext();
+        if (!audio) return;
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140, audio.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, audio.currentTime + 0.05);
+
+        gain.gain.setValueAtTime(0.08, audio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(audio.destination);
+
+        osc.start();
+        osc.stop(audio.currentTime + 0.05);
+      } catch (_) {}
+    }
+
+    function playNavigation() {
+      try {
+        const audio = getContext();
+        if (!audio) return;
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, audio.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(260, audio.currentTime + 0.06);
+
+        gain.gain.setValueAtTime(0.04, audio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.06);
+
+        osc.connect(gain);
+        gain.connect(audio.destination);
+
+        osc.start();
+        osc.stop(audio.currentTime + 0.06);
+      } catch (_) {}
+    }
+
+    function playMatch() {
+      try {
+        const audio = getContext();
+        if (!audio) return;
+        // Two-tone harmonic chime
+        [523.25, 659.25].forEach((freq, i) => {
+          const osc = audio.createOscillator();
+          const gain = audio.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audio.currentTime + i * 0.07);
+
+          gain.gain.setValueAtTime(0.06, audio.currentTime + i * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + i * 0.07 + 0.18);
+
+          osc.connect(gain);
+          gain.connect(audio.destination);
+
+          osc.start(audio.currentTime + i * 0.07);
+          osc.stop(audio.currentTime + i * 0.07 + 0.18);
+        });
+      } catch (_) {}
+    }
+
+    function playMismatch() {
+      try {
+        const audio = getContext();
+        if (!audio) return;
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(110, audio.currentTime);
+        osc.frequency.linearRampToValueAtTime(80, audio.currentTime + 0.1);
+
+        gain.gain.setValueAtTime(0.04, audio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.1);
+
+        osc.connect(gain);
+        gain.connect(audio.destination);
+
+        osc.start();
+        osc.stop(audio.currentTime + 0.1);
+      } catch (_) {}
+    }
+
+    function playCompletion() {
+      try {
+        const audio = getContext();
+        if (!audio) return;
+        // 3-note victory cue
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          const osc = audio.createOscillator();
+          const gain = audio.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, audio.currentTime + idx * 0.1);
+
+          gain.gain.setValueAtTime(0.08, audio.currentTime + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + idx * 0.1 + 0.35);
+
+          osc.connect(gain);
+          gain.connect(audio.destination);
+
+          osc.start(audio.currentTime + idx * 0.1);
+          osc.stop(audio.currentTime + idx * 0.1 + 0.35);
+        });
+      } catch (_) {}
+    }
+
+    return {
+      playTap,
+      playNavigation,
+      playMatch,
+      playMismatch,
+      playCompletion
+    };
+  })();
+
+  // ==========================================================================
+  // EVENT ATTACHMENTS
+  // ==========================================================================
+  function setupEvents() {
+    // Prime AudioContext safely upon genuine interaction
+    window.addEventListener('pointerdown', () => soundSystem.playTap(), { once: true });
+
+    // Navigation Order: Daily Puzzle -> Vault -> Home
+    document.getElementById('nav-daily').onclick = () => showMainView('daily');
+    document.getElementById('nav-vault').onclick = () => showMainView('vault');
+
+    // Home link setup with clearly identifiable placeholder
+    const homeLink = document.getElementById('nav-home');
+    homeLink.href = CONFIG.homeUrl;
+
+    // Daily Play
+    document.getElementById('btn-play-daily').onclick = () => {
+      soundSystem.playTap();
+      loadPuzzle(state.todayPuzzle);
+    };
+
+    // Gameplay Dedicated Header: Back button returns to Game Menu
+    document.getElementById('btn-game-back').onclick = () => {
+      showMainView('daily');
+    };
+
+    // Reset button on gameplay screen
+    document.getElementById('btn-reset-board').onclick = () => {
+      soundSystem.playTap();
+      if (confirm('Reset current tournament progress on this sheet?')) {
+        state.activeSession = null;
+        savePersistence();
+        loadPuzzle(state.activePuzzle);
+      }
+    };
+
+    // Stats and Rules modal triggers
+    document.getElementById('btn-help-toggle').onclick = () => {
+      soundSystem.playNavigation();
+      openModal('modal-rules');
+    };
+    document.getElementById('btn-open-stats-modal').onclick = () => {
+      soundSystem.playNavigation();
+      renderStatsModal();
+      openModal('modal-stats');
+    };
+
+    // Completion modal actions
+    document.getElementById('btn-complete-share').onclick = shareResult;
+    document.getElementById('btn-complete-vault').onclick = () => {
+      closeAllModals();
+      showMainView('vault');
+    };
+    document.getElementById('btn-complete-menu').onclick = () => {
+      closeAllModals();
+      showMainView('daily');
+    };
+
+    // Modal dismissals
+    document.getElementById('modal-overlay').onclick = closeAllModals;
+    document.querySelectorAll('.btn-close').forEach(b => {
+      b.onclick = closeAllModals;
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeAllModals();
+    });
+  }
+
+  // ==========================================================================
+  // INITIALIZATION PASS
+  // ==========================================================================
+  async function init() {
+    loadPersistence();
+    setupEvents();
+    initAmbientCurlingField();
+
+    try {
+      await loadPuzzles();
+      showMainView('daily');
+    } catch (err) {
+      console.error('Initialization error:', err);
+      const msgEl = document.getElementById('status-message');
+      msgEl.textContent = 'Unable to load tournament puzzle records. Please verify connection.';
+      const retryBtn = document.getElementById('btn-retry');
+      retryBtn.classList.remove('hidden');
+      retryBtn.onclick = () => {
+        retryBtn.classList.add('hidden');
+        msgEl.textContent = 'Loading puzzles...';
+        init();
+      };
+      document.querySelectorAll('.app-main .view').forEach(v => v.classList.add('hidden'));
+      document.getElementById('view-status').classList.remove('hidden');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
 })();
