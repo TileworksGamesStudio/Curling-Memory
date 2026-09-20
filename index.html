@@ -3,303 +3,364 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Memory Match</title>
+  <meta name="description" content="Memory Match — Canadian Curling Ice House championship daily memory card-matching challenge.">
+  <meta name="theme-color" content="#F7FCFF">
+  <title>Memory Match 🍁 — Championship Daily Puzzle</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- RINK ATMOSPHERE & ICE AMBIENCE (PURELY DECORATIVE, ARIA-HIDDEN) -->
-  <div class="rink-atmosphere" aria-hidden="true">
-    <div class="rink-ice-base"></div>
-    <div class="rink-sheet-lines">
-      <div class="rink-center-line"></div>
-      <div class="rink-hog-top"></div>
-      <div class="rink-tee-line"></div>
-      <div class="rink-house-rings">
-        <div class="house-ring ring-12ft"></div>
-        <div class="house-ring ring-8ft"></div>
-        <div class="house-ring ring-4ft"></div>
-        <div class="house-ring ring-button"></div>
-      </div>
-      <div class="rink-hog-bottom"></div>
-    </div>
-    <div class="rink-light-sheen"></div>
-    <div class="rink-vignette"></div>
-    <!-- FLOATING CURLING ICONS & CANADIAN MAPLE LEAVES LAYER -->
-    <div id="curling-icons-field" class="curling-ambient-field"></div>
+  <!-- Atmospheric Canadian Curling Rink Simulation Canvas (Elevated House & Live Physics) -->
+  <div id="bg-canvas" class="bg-curling-canvas" aria-hidden="true">
+    <canvas id="curling-ice-canvas"></canvas>
   </div>
 
+  <!-- Primary Application Wrapper -->
   <div class="app-container">
-    
-    <!-- MAIN APPLICATION HEADER (Visible outside active puzzle) -->
-    <header id="main-header" class="app-header ice-panel-surface">
-      <div class="title-group">
-        <div class="title-lockup">
-          <div class="brand-crest" aria-hidden="true">
-            <!-- Authoritative Canadian Maple Leaf Asset -->
-            <svg class="maple-leaf-badge" viewBox="0 0 298.72 341.12" aria-hidden="true" focusable="false">
-              <defs>
-                <linearGradient id="headerLeafGrad" y2="372.96" gradientUnits="userSpaceOnUse" y1="86.713" x2="411.88" x1="157.77">
-                  <stop offset="0" stop-color="#FF2830"/>
-                  <stop offset="1" stop-color="#C8102E"/>
-                </linearGradient>
-              </defs>
-              <g transform="translate(-250.85 -233.44)">
-                <path d="m325.8 480.69 8.1527-20.11-65.765-60.873 17.392-9.2397-7.6092-44.568 39.676 4.3481 11.957-16.849 30.98 39.133-17.392-84.788 26.089 8.6962 25.001-45.655 23.371 44.568 27.719-7.6092-17.936 84.244 30.98-38.046 10.87 16.305 39.133-3.8046-5.9786 42.937 17.936 11.414-65.765 60.33 7.0656 21.197-58.699-9.7832 1.6305 72.83h-22.284l3.2611-73.374z" fill="url(#headerLeafGrad)"/>
-              </g>
-            </svg>
-          </div>
-          <div>
-            <span class="sub-championship-tag">CANADIAN MASTERS CURLING</span>
-            <h1 class="app-title">Memory Match</h1>
-          </div>
-        </div>
-        <div class="stone-tally-accent" aria-hidden="true">
-          <span class="stone-dot stone-red-dot" title="Red End Stone"></span>
-          <span class="stone-dot stone-yellow-dot" title="Yellow End Stone"></span>
+
+    <!-- Top Application Header -->
+    <header class="app-header">
+      <div class="header-inner">
+        <a id="btn-home" class="nav-home-btn" href="https://tileworksgamesstudio.github.io/Curling-Menu/" target="_blank" rel="noopener noreferrer" aria-label="Tileworks Games Home">
+          <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </a>
+        <h1 class="app-title">Memory Match <span class="maple-mark">🍁</span></h1>
+        <div class="header-right-tools">
+          <button id="btn-sound-toggle" class="btn btn-icon btn-sm" type="button" aria-label="Toggle audio effects" title="Toggle audio effects">
+            <span id="sound-icon-glyph" aria-hidden="true">🔊</span>
+          </button>
         </div>
       </div>
-      <nav class="app-nav" aria-label="Main Navigation">
-        <button id="nav-daily" class="nav-link active" type="button">Daily Puzzle</button>
-        <button id="nav-vault" class="nav-link" type="button">Vault</button>
-        <a id="nav-home" class="nav-link" href="https://example.com" rel="noopener">Home</a>
-      </nav>
     </header>
 
-    <!-- DEDICATED GAMEPLAY HEADER (Visible exclusively during puzzle play) -->
-    <header id="gameplay-header" class="gameplay-header ice-panel-surface hidden">
-      <button id="btn-game-back" class="btn btn-sm btn-nav-back" type="button" aria-label="Return to menu">
-        <span aria-hidden="true" class="arrow-glyph">&larr;</span> Menu
-      </button>
-      <div class="gameplay-title-wrap">
-        <span class="sheet-indicator-tag" aria-hidden="true">SHEET A &bull; MATCH PLAY</span>
-        <h2 id="gameplay-title" class="gameplay-puzzle-title">Daily Puzzle</h2>
-      </div>
-      <button id="btn-help-toggle" class="btn btn-sm btn-icon" type="button" aria-label="How to play">?</button>
-    </header>
-
+    <!-- Main View Switcher -->
     <main class="app-main">
-      <!-- Loading / System Status View -->
+
+      <!-- View: Loading / Error Status -->
       <section id="view-status" class="view" aria-live="polite">
-        <div class="card status-card ice-panel-surface">
-          <div class="status-rink-loader" aria-hidden="true">
-            <div class="loader-stone-ring"></div>
-            <div class="loader-stone-core"></div>
-          </div>
-          <p id="status-message" class="status-text">Loading puzzles...</p>
-          <button id="btn-retry" class="btn btn-primary hidden" type="button">Retry</button>
+        <div class="card status-card">
+          <p id="status-message" class="status-text">Preparing sheet ice &amp; stones...</p>
+          <button id="btn-retry" class="btn btn-primary hidden" type="button">Retry Connection</button>
         </div>
       </section>
 
-      <!-- 1. DAILY PUZZLE VIEW -->
-      <section id="view-daily" class="view hidden">
-        <div class="card daily-card ice-panel-surface">
+      <!-- View: Main Menu (Viewport Centered) -->
+      <section id="view-menu" class="view hidden">
+        <div class="menu-hero-card card">
           <div class="card-meta">
-            <div class="badge-group">
-              <span class="badge badge-canadian-red">Today's End</span>
-              <span class="rink-sheet-badge">SHEET &bull; 01</span>
-            </div>
-            <span id="daily-date" class="meta-date"></span>
+            <span class="badge" id="menu-daily-badge">🍁 Daily End</span>
+            <span id="menu-daily-date" class="meta-date"></span>
           </div>
-          <div class="puzzle-title-block">
-            <h2 id="daily-title" class="puzzle-hero-title"></h2>
-            <div class="ice-divider" aria-hidden="true">
-              <span class="line-segment"></span>
-              <span class="divider-leaf-pin">
-                <svg viewBox="0 0 298.72 341.12" aria-hidden="true">
-                  <g transform="translate(-250.85 -233.44)">
-                    <path d="m325.8 480.69 8.1527-20.11-65.765-60.873 17.392-9.2397-7.6092-44.568 39.676 4.3481 11.957-16.849 30.98 39.133-17.392-84.788 26.089 8.6962 25.001-45.655 23.371 44.568 27.719-7.6092-17.936 84.244 30.98-38.046 10.87 16.305 39.133-3.8046-5.9786 42.937 17.936 11.414-65.765 60.33 7.0656 21.197-58.699-9.7832 1.6305 72.83h-22.284l3.2611-73.374z" fill="var(--c-canadian-red)"/>
-                  </g>
-                </svg>
-              </span>
-              <span class="line-segment"></span>
-            </div>
-          </div>
-          <p id="daily-status" class="puzzle-status-desc">Ready to play</p>
-          <div class="daily-actions">
-            <button id="btn-play-daily" class="btn btn-primary btn-block btn-stone-glow" type="button">Play Daily Puzzle</button>
+          <h2 id="menu-daily-title" class="menu-daily-title">Today's Challenge</h2>
+          <p id="menu-daily-status" class="menu-daily-status">Ready for delivery</p>
+          <div id="menu-countdown-wrap" class="daily-countdown-wrap hidden" aria-live="polite">
+            <span class="countdown-label">Next end release:</span>
+            <strong id="menu-countdown-val" class="countdown-value">--h --m --s</strong>
           </div>
         </div>
 
-        <div class="quick-stats-card card ice-panel-surface">
-          <div class="stats-header">
-            <div class="stats-title-wrap">
-              <span class="rink-accent-dot" aria-hidden="true"></span>
-              <h3 class="section-title">Tournament Ledger</h3>
-            </div>
-            <button id="btn-open-stats-modal" class="btn-text" type="button">View Scorecard</button>
-          </div>
-          <div class="stats-summary-grid">
-            <div class="stat-cell">
-              <span class="stat-value" id="quick-streak">0</span>
-              <span class="stat-label">Consecutive Ends</span>
-            </div>
-            <div class="stat-cell">
-              <span class="stat-value" id="quick-completed">0</span>
-              <span class="stat-label">Ends Cleared</span>
-            </div>
-            <div class="stat-cell">
-              <span class="stat-value" id="quick-best-turns">—</span>
-              <span class="stat-label">Best Delivery</span>
-            </div>
-          </div>
+        <!-- 4 Primary Menu Buttons -->
+        <nav class="primary-menu-nav" aria-label="Main Navigation">
+          <button id="btn-play-game" class="btn btn-menu btn-primary" type="button">
+            <span class="btn-menu-label" id="btn-play-label">Play Memory Match 🍁</span>
+            <span class="btn-menu-arrow" aria-hidden="true">→</span>
+          </button>
+          <button id="btn-open-vault" class="btn btn-menu" type="button">
+            <span class="btn-menu-label">Puzzle Vault</span>
+            <span class="btn-menu-tag" id="vault-count-tag">Archive</span>
+          </button>
+          <button id="btn-open-settings" class="btn btn-menu" type="button">
+            <span class="btn-menu-label">Settings</span>
+            <span class="btn-menu-arrow" aria-hidden="true">⚙</span>
+          </button>
+          <button id="btn-open-how-to-play" class="btn btn-menu" type="button">
+            <span class="btn-menu-label">How to Play</span>
+            <span class="btn-menu-arrow" aria-hidden="true">?</span>
+          </button>
+        </nav>
+
+        <!-- Bottom Center Utility Row: Stats, Share, Plus -->
+        <div class="utility-row" aria-label="Quick Actions">
+          <button id="btn-util-stats" class="btn-util" type="button" aria-label="Player Statistics" title="Player Statistics">
+            <svg class="util-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 20V10M12 20V4M6 20v-6"/>
+            </svg>
+            <span class="util-text">Stats</span>
+          </button>
+          <button id="btn-util-share" class="btn-util" type="button" aria-label="Share Game" title="Share Game">
+            <svg class="util-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="18" cy="5" r="3"/>
+              <circle cx="6" cy="12" r="3"/>
+              <circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            <span class="util-text">Share</span>
+          </button>
+          <button id="btn-util-plus" class="btn-util" type="button" aria-label="More Games" title="More Games">
+            <svg class="util-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span class="util-text">More</span>
+          </button>
         </div>
       </section>
 
-      <!-- 2. VAULT VIEW (Historical archive of previous puzzles) -->
+      <!-- View: Vault View (Monthly Grouped Archive) -->
       <section id="view-vault" class="view hidden">
-        <div class="vault-header ice-panel-surface">
-          <div class="vault-heading-lockup">
-            <h2 class="vault-heading">Curling Archive</h2>
-            <span class="vault-count-pill" aria-hidden="true">HISTORY</span>
-          </div>
-          <p class="vault-subtext">Review and replay recorded curling tournament puzzles</p>
+        <div class="view-header-bar">
+          <button id="btn-vault-back" class="btn btn-sm" type="button" aria-label="Return to main menu">
+            <span aria-hidden="true">&larr;</span> Menu
+          </button>
+          <h2 class="view-header-title">Championship Vault</h2>
         </div>
-        <div id="vault-list" class="vault-list" role="feed" aria-label="Previous puzzles"></div>
+        <p class="vault-subtext">Archive of past daily challenges and practice sets</p>
+        <div id="vault-list" class="vault-list" aria-label="Puzzle archives"></div>
       </section>
 
-      <!-- 3. GAMEPLAY SCREEN -->
+      <!-- View: Active Gameplay Screen -->
       <section id="view-game" class="view hidden">
-        <!-- Spatial Rule: Icons & stats above game board -->
+        <div class="gameplay-header-bar">
+          <button id="btn-game-back" class="btn btn-sm" type="button" aria-label="Return to menu">
+            <span aria-hidden="true">&larr;</span> Menu
+          </button>
+          <div class="gameplay-title-wrap">
+            <span id="game-practice-badge" class="badge-practice hidden">Practice Mode</span>
+            <h2 id="gameplay-title" class="gameplay-puzzle-title">Daily Puzzle</h2>
+          </div>
+          <button id="btn-game-rules" class="btn btn-icon btn-sm" type="button" aria-label="Rules" title="Rules">?</button>
+        </div>
+
         <div class="game-meta-strip">
-          <div class="status-indicator ice-panel-surface">
-            <span class="meta-caption">Stones Delivered</span>
+          <div class="status-indicator">
+            <span class="meta-caption">Turns</span>
             <span id="stat-turns" class="meta-num">0</span>
           </div>
-          <div class="status-indicator ice-panel-surface">
-            <span class="meta-caption">In The House</span>
+          <div class="status-indicator">
+            <span class="meta-caption">Pairs</span>
             <span id="stat-pairs" class="meta-num">0 / 8</span>
           </div>
-          <button id="btn-reset-board" class="btn btn-sm btn-ice-action" type="button" aria-label="Reset puzzle">Reset Sheet</button>
+          <button id="btn-reset-board" class="btn btn-sm" type="button" aria-label="Reset current board">Reset</button>
         </div>
 
-        <!-- Spatial Rule: Game board in the center -->
+        <!-- 4x4 Memory Grid (Zero-Clipping Responsive Square) -->
         <div class="board-wrapper">
-          <div class="board-frame-sheen" aria-hidden="true"></div>
-          <div id="game-board" class="board-grid" role="grid" aria-label="Card matching grid"></div>
+          <div id="game-board" class="board-grid" role="grid" aria-label="Memory card grid. Tap to flip or use arrow keys with Enter/Space."></div>
         </div>
 
-        <!-- Spatial Rule: Supporting text / secondary info below game board -->
-        <div class="game-footer-info ice-panel-surface">
-          <div class="scoreboard-status-bar" aria-hidden="true">
-            <span class="status-indicator-lamp"></span>
-            <span class="scoreboard-sub">TACTICAL REPORT</span>
-          </div>
-          <p id="game-feedback" class="game-feedback" aria-live="polite">Deliver stones and pair up matching labels to clear the house.</p>
+        <div class="game-footer-info">
+          <p id="game-feedback" class="game-feedback" aria-live="polite">Flip tiles to match all 8 championship pairs.</p>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- OVERLAY BACKDROP -->
+  <!-- Global Modal Overlay Backdrop -->
   <div id="modal-overlay" class="modal-overlay hidden" aria-hidden="true"></div>
 
-  <!-- RULES MODAL -->
-  <div id="modal-rules" class="modal ice-panel-surface hidden" role="dialog" aria-modal="true" aria-labelledby="rules-title">
-    <div class="modal-header">
-      <div class="modal-title-wrap">
-        <span class="modal-kicker">OFFICIAL RULING</span>
-        <h2 id="rules-title" class="modal-title">Tournament Rules</h2>
+  <!-- How to Play Floating Panel (Right-to-Left Slide In) -->
+  <aside id="panel-how-to-play" class="slide-panel hidden" role="dialog" aria-modal="true" aria-labelledby="htp-title">
+    <div class="panel-header">
+      <h2 id="htp-title" class="modal-title">How to Play 🍁</h2>
+      <button id="btn-close-htp" class="btn-close" type="button" aria-label="Close instructions">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="panel-section">
+        <h3 class="panel-subtitle">Objective</h3>
+        <p>Exercise your visual recall by matching all 8 curling and winter championship pairs on the 4&times;4 sheet grid in as few turns as possible.</p>
       </div>
+      <div class="panel-section">
+        <h3 class="panel-subtitle">Gameplay Rules</h3>
+        <ul class="panel-list">
+          <li><strong>One Tap Flip:</strong> Tap any card to reveal its custom symbol and label.</li>
+          <li><strong>Find the Match:</strong> Reveal a second card. If they match, they lock face-up with a verified checkmark badge.</li>
+          <li><strong>Mismatches:</strong> If the cards do not match, memorize their positions before they turn back face down.</li>
+          <li><strong>Daily Release:</strong> A brand new daily challenge unlocks every night at midnight UK time (Europe/London).</li>
+        </ul>
+      </div>
+      <div class="panel-section">
+        <h3 class="panel-subtitle">Star Ratings</h3>
+        <ul class="panel-list rating-list">
+          <li>★★★ <strong>Masterful Recall:</strong> 12 turns or fewer</li>
+          <li>★★☆ <strong>Great Match:</strong> 13–18 turns</li>
+          <li>★☆☆ <strong>Solved:</strong> 19+ turns</li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel-footer">
+      <button id="btn-htp-got-it" class="btn btn-primary btn-block" type="button">Understood</button>
+    </div>
+  </aside>
+
+  <!-- Settings Dialog -->
+  <div id="modal-settings" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-header">
+      <h2 id="settings-title" class="modal-title">Settings ⚙</h2>
       <button class="btn-close" type="button" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
-      <p class="modal-lead-text">Clear all stones from the ice sheet with disciplined precision and the fewest delivery turns.</p>
-      <ul class="modal-list">
-        <li>Tap any stone to reveal its ice position label.</li>
-        <li>Select a second stone to search for its identical counterpart.</li>
-        <li>Matching pairs remain locked face-up in the house.</li>
-        <li>Unmatched stones flip back under tournament guard.</li>
-        <li>Match all 8 pairs to conclude the end and claim victory.</li>
-      </ul>
+      <div class="settings-row">
+        <div class="settings-info">
+          <span class="settings-label">Curling Rink Simulation</span>
+          <span class="settings-desc">Live sheet delivery, 95% button targeting &amp; 9th-shot mega take-outs</span>
+        </div>
+        <button id="btn-toggle-bg-anim" class="btn btn-sm btn-toggle" type="button" aria-pressed="true">
+          <span class="toggle-indicator"></span>
+          <span id="lbl-bg-anim" class="toggle-text">On</span>
+        </button>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-info">
+          <span class="settings-label">Sound FX</span>
+          <span class="settings-desc">Synthesized granite glide, card flips and victory fanfare</span>
+        </div>
+        <button id="btn-toggle-sound-setting" class="btn btn-sm btn-toggle" type="button" aria-pressed="true">
+          <span class="toggle-indicator"></span>
+          <span id="lbl-sound-setting" class="toggle-text">On</span>
+        </button>
+      </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary btn-close" type="button">Understood</button>
+      <button class="btn btn-close" type="button">Done</button>
     </div>
   </div>
 
-  <!-- STATS MODAL -->
-  <div id="modal-stats" class="modal ice-panel-surface hidden" role="dialog" aria-modal="true" aria-labelledby="stats-title">
+  <!-- Player Statistics Dialog -->
+  <div id="modal-stats" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="stats-title">
     <div class="modal-header">
-      <div class="modal-title-wrap">
-        <span class="modal-kicker">SCORECARD</span>
-        <h2 id="stats-title" class="modal-title">Curler Statistics</h2>
-      </div>
+      <h2 id="stats-title" class="modal-title">Player Statistics 🍁</h2>
       <button class="btn-close" type="button" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body">
       <div class="stats-dialog-grid">
         <div class="stat-box">
           <span id="stat-modal-played" class="stat-box-val">0</span>
-          <span class="stat-box-lbl">Ends Played</span>
+          <span class="stat-box-lbl">Played</span>
         </div>
         <div class="stat-box">
           <span id="stat-modal-completed" class="stat-box-val">0</span>
-          <span class="stat-box-lbl">Ends Won</span>
+          <span class="stat-box-lbl">Cleared</span>
         </div>
         <div class="stat-box">
           <span id="stat-modal-streak" class="stat-box-val">0</span>
-          <span class="stat-box-lbl">Current Run</span>
+          <span class="stat-box-lbl">Streak</span>
         </div>
         <div class="stat-box">
           <span id="stat-modal-best-streak" class="stat-box-val">0</span>
-          <span class="stat-box-lbl">Record Run</span>
+          <span class="stat-box-lbl">Best Streak</span>
         </div>
       </div>
       <div class="stat-rows">
         <div class="stat-row-item">
-          <span class="row-item-label">Fewest Turns Record:</span>
-          <strong id="stat-modal-best-turns" class="row-item-val">—</strong>
+          <span>Fewest Turns:</span>
+          <strong id="stat-modal-best-turns">—</strong>
         </div>
         <div class="stat-row-item">
-          <span class="row-item-label">Delivery Average:</span>
-          <strong id="stat-modal-avg-turns" class="row-item-val">—</strong>
+          <span>Average Turns:</span>
+          <strong id="stat-modal-avg-turns">—</strong>
+        </div>
+      </div>
+
+      <div class="backup-section">
+        <h3 class="backup-title">Data Backup &amp; Migration</h3>
+        <p class="backup-desc">Export your records or import progress from another device.</p>
+        <div class="backup-actions">
+          <button id="btn-export-backup" class="btn btn-sm" type="button">Export Backup</button>
+          <button id="btn-import-backup-toggle" class="btn btn-sm" type="button">Import Backup</button>
+        </div>
+        <div id="import-block" class="import-block hidden">
+          <label for="import-data-text" class="sr-only">Paste backup data code</label>
+          <textarea id="import-data-text" class="import-textarea" placeholder="Paste your backup JSON here..." rows="3"></textarea>
+          <button id="btn-import-apply" class="btn btn-primary btn-sm btn-block" type="button">Apply Data</button>
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-close" type="button">Close Scorecard</button>
+      <button class="btn btn-close" type="button">Close</button>
     </div>
   </div>
 
-  <!-- COMPLETION MODAL -->
-  <div id="modal-complete" class="modal ice-panel-surface hidden" role="dialog" aria-modal="true" aria-labelledby="complete-title">
-    <div class="modal-header header-victory">
-      <div class="victory-crest" aria-hidden="true">
-        <svg class="maple-leaf-victory" viewBox="0 0 298.72 341.12" aria-hidden="true">
-          <g transform="translate(-250.85 -233.44)">
-            <path d="m325.8 480.69 8.1527-20.11-65.765-60.873 17.392-9.2397-7.6092-44.568 39.676 4.3481 11.957-16.849 30.98 39.133-17.392-84.788 26.089 8.6962 25.001-45.655 23.371 44.568 27.719-7.6092-17.936 84.244 30.98-38.046 10.87 16.305 39.133-3.8046-5.9786 42.937 17.936 11.414-65.765 60.33 7.0656 21.197-58.699-9.7832 1.6305 72.83h-22.284l3.2611-73.374z" fill="#D71920"/>
-          </g>
-        </svg>
-      </div>
-      <div class="modal-title-wrap text-center">
-        <span class="modal-kicker victory-kicker">CHAMPIONSHIP VICTORY</span>
-        <h2 id="complete-title" class="modal-title">End Secured!</h2>
-      </div>
+  <!-- Reset Confirmation Dialog -->
+  <div id="modal-reset" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+    <div class="modal-header">
+      <h2 id="reset-modal-title" class="modal-title">Restart End?</h2>
+      <button class="btn-close" type="button" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to restart this puzzle? Your turn counter will reset to 0.</p>
+    </div>
+    <div class="modal-footer">
+      <button id="btn-reset-cancel" class="btn" type="button">Keep Playing</button>
+      <button id="btn-reset-confirm" class="btn btn-primary" type="button">Restart</button>
+    </div>
+  </div>
+
+  <!-- Puzzle Completion Modal -->
+  <div id="modal-complete" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="complete-title">
+    <div class="modal-header">
+      <h2 id="complete-title" class="modal-title">End Cleared! 🍁</h2>
       <button class="btn-close" type="button" aria-label="Close dialog">&times;</button>
     </div>
     <div class="modal-body text-center">
+      <div class="stars-container" id="complete-stars" aria-label="Score rating">
+        <span class="star-glyph">★</span>
+        <span class="star-glyph">★</span>
+        <span class="star-glyph">★</span>
+      </div>
+      <p id="complete-rating-label" class="rating-descriptor">Masterful Recall!</p>
+
+      <div id="complete-pb-banner" class="pb-banner hidden">
+        <span>🎉 New Personal Best Record!</span>
+      </div>
+
       <div class="complete-hero-stat">
-        <div class="stat-box stone-accent-box red-accent">
+        <div class="stat-box">
           <span id="complete-turns" class="stat-box-val">0</span>
-          <span class="stat-box-lbl">Deliveries</span>
+          <span class="stat-box-lbl">Turns</span>
         </div>
-        <div class="stat-box stone-accent-box yellow-accent">
+        <div class="stat-box">
           <span id="complete-accuracy" class="stat-box-val">0%</span>
-          <span class="stat-box-lbl">Ice Accuracy</span>
+          <span class="stat-box-lbl">Efficiency</span>
         </div>
       </div>
+
+      <p id="complete-replay-note" class="replay-note hidden">Practice Run: Official daily streak preserved.</p>
+
+      <div id="complete-countdown-block" class="complete-countdown-block">
+        <span class="countdown-label">Next Daily Challenge in:</span>
+        <strong id="complete-countdown-val" class="countdown-val">--h --m --s</strong>
+      </div>
+
       <div class="solved-pairs-block">
-        <h3 class="solved-subtitle">Cleared Items:</h3>
+        <h3 class="solved-subtitle">Solved Championship Items:</h3>
         <ul id="complete-items-list" class="solved-pairs-list"></ul>
       </div>
     </div>
     <div class="modal-footer modal-footer-spread">
-      <button id="btn-complete-share" class="btn btn-primary btn-stone-glow" type="button">Share Result</button>
-      <button id="btn-complete-vault" class="btn" type="button">Curling Vault</button>
-      <button id="btn-complete-menu" class="btn" type="button">Main Clubhouse</button>
+      <button id="btn-complete-share" class="btn btn-primary" type="button">Share 🍁</button>
+      <button id="btn-complete-vault" class="btn" type="button">Vault</button>
+      <button id="btn-complete-menu" class="btn" type="button">Menu</button>
+    </div>
+  </div>
+
+  <!-- Plus More Games Modal -->
+  <div id="modal-plus" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="plus-title">
+    <div class="modal-header">
+      <h2 id="plus-title" class="modal-title">Tileworks Games Portal</h2>
+      <button class="btn-close" type="button" aria-label="Close dialog">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Discover more daily brain teasers, crosswords, and Canadian Curling Ice House championship puzzles.</p>
+      <a href="https://example.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block">
+        Visit Tileworks Portal ↗
+      </a>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-close" type="button">Close</button>
     </div>
   </div>
 
